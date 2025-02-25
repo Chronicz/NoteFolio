@@ -1,4 +1,4 @@
-**NoteFolio**
+# NoteFolio
 
 An advanced note-taking management application with AI integration to enhance productivity and organization.
 
@@ -18,30 +18,24 @@ Features
 
 🔄 Version History – Track changes and revert to previous versions.
 
-Tech Stack
+**Tech Stack**
 
-Frontend: React, TailwindCSS
+Frontend: Next.js, TypeScript
 
-Backend: Node.js, Express.js
+Backend: Node.js, Express.js, Python, FastAPI
 
-Database: MongoDB
+Database: MySQL
 
 AI Integration: OpenAI API
 
-Authentication: Firebase Auth
-
-Deployment: Vercel / AWS
-
-Installation
-
-# Clone the repository
+## Clone the repository
 git clone https://github.com/your-username/NoteFolio.git
 cd NoteFolio
 
-# Install dependencies
+## Install dependencies
 npm install
 
-# Start the development server
+## Start the development server
 npm run dev
 
 Usage
