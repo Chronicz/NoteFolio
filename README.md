@@ -38,7 +38,7 @@ npm install
 ## Start the development server
 npm run dev
 
-**Usage**
+## Usage
 
 Create an account and log in.
 
