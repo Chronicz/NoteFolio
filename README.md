@@ -18,7 +18,7 @@ An advanced note-taking management application with AI integration to enhance pr
 
 🔄 Version History – Track changes and revert to previous versions.
 
-**Tech Stack**
+## Tech Stack 
 
 Frontend: Next.js, TypeScript
 
