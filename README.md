@@ -2,7 +2,7 @@
 
 An advanced note-taking management application with AI integration to enhance productivity and organization.
 
-Features
+## Features
 
 📝 Rich Text Editing – Format notes with bold, italics, headings, and more.
 
