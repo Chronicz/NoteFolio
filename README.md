@@ -24,7 +24,7 @@ Frontend: Next.js, TypeScript
 
 Backend: Node.js, Express.js, Python, FastAPI
 
-Database: MySQL
+Database: MongoDB
 
 AI Integration: OpenAI API
 
