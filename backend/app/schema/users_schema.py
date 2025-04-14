@@ -14,3 +14,8 @@ class Users(BaseModel):
             ObjectId: str
         }
         arbitrary_types_allowed=True
+
+class UpdateUser(BaseModel):
+    name:Optional[str]=None
+    email:Optional[str]=None
+    password:Optional[str]=None
