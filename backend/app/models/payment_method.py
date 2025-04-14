@@ -1,9 +1,6 @@
-import db.mongo_db
 from mongoengine import Document,StringField,EnumField,DateTimeField,ReferenceField
 from datetime import datetime
 from enum import Enum
-from models.users import User
-# Enum for Payment Types
 class PaymentTypeEnum(Enum):
     VISA = "Visa"
     MASTERCARD = "MasterCard"
@@ -24,7 +21,7 @@ class Payment_Method(Document):
     ccv=StringField(required=True, min_length=3,max_length=4)
     payment_type=EnumField(PaymentTypeEnum, required=True)
     expiration_date=DateTimeField(required=True, validation=validate_expiration_date)
-    user=ReferenceField(User)
+    user=ReferenceField("User")
 
     # You can override the `save` method to ensure more complex logic is enforced.
     def save(self, *args, **kwargs):
