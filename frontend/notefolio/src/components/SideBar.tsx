@@ -33,7 +33,7 @@ export default function SideBar() {
             <div className="p-4">
                 <button className="flex items-center w-full text-left text-sm text-gray-600 hover:bg-gray-200 rounded p-2">
                     <Plus size={16} className="mr-2" />
-                    <span>New page</span>
+                    <span>New+</span>
                 </button>
             </div>
         </div>
