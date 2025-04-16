@@ -137,7 +137,13 @@ Let me know! 😊`,
   
   // Get API key from localStorage
   const getApiKey = () => {
-    return localStorage.getItem('notefolio_api_key') || ""
+    // 优先从环境变量获取API密钥
+    const envApiKey = process.env.NEXT_PUBLIC_NOTEFOLIO_API_KEY;
+    
+    // 如果环境变量中没有设置，则尝试从localStorage获取（作为备用）
+    const localStorageApiKey = localStorage.getItem('notefolio_api_key') || "";
+    
+    return envApiKey || localStorageApiKey;
   }
   
   // Scroll to the latest message
@@ -171,7 +177,7 @@ Let me know! 😊`,
       if (!apiKey) {
         const errorMessage: Message = {
           role: 'assistant',
-          content: "Please set your API key in localStorage first.",
+          content: "API key not found. Please set it in the .env.local file or localStorage.",
           timestamp: Date.now()
         }
         setCurrentMessages(prev => [...prev, errorMessage])
