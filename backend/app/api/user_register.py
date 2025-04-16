@@ -37,9 +37,10 @@ async def create_user(user:Users):
 
         return {
             "message":"User successfully registered",
-            "user":result
-
+            "user_name":result["name"],
+            "user_email":result["email"]
         }
+    
     except HTTPException as e:
         return {
             'error':e.message,
