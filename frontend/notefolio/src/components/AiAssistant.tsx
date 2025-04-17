@@ -137,10 +137,10 @@ Let me know! 😊`,
   
   // Get API key from localStorage
   const getApiKey = () => {
-    // 优先从环境变量获取API密钥
+    
     const envApiKey = process.env.NEXT_PUBLIC_NOTEFOLIO_API_KEY;
     
-    // 如果环境变量中没有设置，则尝试从localStorage获取（作为备用）
+    
     const localStorageApiKey = localStorage.getItem('notefolio_api_key') || "";
     
     return envApiKey || localStorageApiKey;
@@ -238,7 +238,7 @@ Important formatting rules:
           model: "Qwen/QwQ-32B",
           messages: apiMessages,
           stream: false,
-          max_tokens: 1200, // Increased token limit
+          max_tokens: 2000, // Increased token limit
           stop: null,
           temperature: 0.4,
           top_p: 0.7,
@@ -291,14 +291,14 @@ Important formatting rules:
   
   // Insert to note
   const handleInsert = (content: string) => {
-    // 将content转换为格式化文本
+    // Convert content to formatted text
     const formattedContent = content
-      .replace(/###\s+/g, '') // 移除###标记
-      .replace(/\*\*([^*]+)\*\*/g, '$1') // 保留粗体文本内容但移除标记
-      .replace(/\[([^\]]+)\]:/g, '[$1]:') // 保留标题格式
+      .replace(/###\s+/g, '') // Remove the ### mark
+      .replace(/\*\*([^*]+)\*\*/g, '$1') // Keep bold text but remove the marker
+      .replace(/\[([^\]]+)\]:/g, '[$1]:') // Keep title format
       .trim();
       
-    // 使用格式化后的内容
+    // Use formatted content
     onInsertContent(formattedContent);
   }
   
