@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import AIAssistant from "./ai-assistant"
 
 import { useState, useRef, useEffect } from "react"
 import { ImageIcon, FileText, AlignLeft, List, ListOrdered, Menu, Bold, Italic, Underline } from "lucide-react"
@@ -86,6 +87,8 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
     // Focus back on the editor
     contentEditableRef.current?.focus()
   }
+
+
 
   return (
     <div className="editor-container">
