@@ -1,10 +1,11 @@
-import NoteFolioApp from "@/components/note-folio-app"
+import NoteEditor from "@/components/note-editor"
+import Sidebar from "../components/note-sidebar"
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
-      <div class="text-red-500">This should be red</div>
-      <NoteFolioApp />
+    <main className="app-container">
+      <Sidebar />
+      <NoteEditor />
     </main>
   )
 }

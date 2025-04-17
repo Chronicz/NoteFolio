@@ -1,90 +1,67 @@
-// "use client"
+"use client"
 
-// import type React from "react"
+import type React from "react"
 
-// import { useState, useEffect } from "react"
-// import { Menu, ImageIcon, FileText, AlignLeft, AlignCenter, AlignJustify } from "lucide-react"
-// import type { Note } from "@/lib/types"
+import { useState, useRef, useEffect } from "react"
+import { ImageIcon, FileText, AlignLeft, List, ListOrdered, Menu } from "lucide-react"
 
-// interface NoteEditorProps {
-//   note: Note
-//   onUpdateNote: (note: Note) => void
-// }
+export default function NoteEditor() {
+  const [title, setTitle] = useState("Hello World")
+  const [content, setContent] = useState("Hello class. This is Notefolio")
+  const contentEditableRef = useRef<HTMLDivElement>(null)
 
-// export default function NoteEditor({ note, onUpdateNote }: NoteEditorProps) {
-//   const [title, setTitle] = useState(note.title)
-//   const [content, setContent] = useState(note.content)
+  // Sync the content state with the contentEditable element
+  useEffect(() => {
+    if (contentEditableRef.current) {
+      // Only set the innerHTML if it's different from the current content
+      // This prevents cursor jumping
+      if (contentEditableRef.current.textContent !== content) {
+        contentEditableRef.current.textContent = content
+      }
+    }
+  }, [content])
 
-//   useEffect(() => {
-//     setTitle(note.title)
-//     setContent(note.content)
-//   }, [note.id, note.title, note.content])
+  const handleContentChange = (e: React.FormEvent<HTMLDivElement>) => {
+    // Update the content state with the current text content
+    setContent(e.currentTarget.textContent || "")
+  }
 
-//   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     setTitle(e.target.value)
-//     onUpdateNote({
-//       ...note,
-//       title: e.target.value,
-//     })
-//   }
-
-//   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-//     setContent(e.target.value)
-//     onUpdateNote({
-//       ...note,
-//       content: e.target.value,
-//     })
-//   }
-
-//   return (
-//     <div className="flex-1 flex flex-col">
-//       <div className="flex items-center p-4 border-b border-gray-200">
-//         <Menu className="mr-2" />
-//         <h1 className="text-xl font-medium">NoteFolio</h1>
-//       </div>
-
-//       <div className="p-4">
-//         <input
-//           type="text"
-//           value={title}
-//           onChange={handleTitleChange}
-//           className="text-2xl font-bold w-full mb-4 outline-none"
-//         />
-
-//         <div className="flex gap-4 mb-4 border-b border-gray-200 pb-4">
-//           <button className="p-2 hover:bg-gray-100 rounded">
-//             <ImageIcon size={20} />
-//           </button>
-//           <button className="p-2 hover:bg-gray-100 rounded">
-//             <FileText size={20} />
-//           </button>
-//           <button className="p-2 hover:bg-gray-100 rounded">
-//             <AlignLeft size={20} />
-//           </button>
-//           <button className="p-2 hover:bg-gray-100 rounded">
-//             <AlignCenter size={20} />
-//           </button>
-//           <button className="p-2 hover:bg-gray-100 rounded">
-//             <AlignJustify size={20} />
-//           </button>
-//         </div>
-
-//         <textarea
-//           value={content}
-//           onChange={handleContentChange}
-//           className="w-full h-full outline-none resize-none"
-//           placeholder="Start typing..."
-//         />
-//       </div>
-//     </div>
-//   )
-// }
-
-
-export default function Test() {
   return (
-    <div className="text-red-500 bg-blue-500 p-4">
-      This should be red text on a blue background with padding
+    <div className="editor-container">
+      <div className="app-header">
+        <Menu size={18} />
+        <span className="app-title">NoteFolio</span>
+      </div>
+
+      <h1 className="editor-title">{title}</h1>
+
+      <div className="toolbar">
+        <button className="toolbar-button" aria-label="Insert image">
+          <ImageIcon size={20} />
+        </button>
+        <button className="toolbar-button" aria-label="Insert file">
+          <FileText size={20} />
+        </button>
+        <button className="toolbar-button" aria-label="Align text">
+          <AlignLeft size={20} />
+        </button>
+        <button className="toolbar-button" aria-label="Bulleted list">
+          <List size={20} />
+        </button>
+        <button className="toolbar-button" aria-label="Numbered list">
+          <ListOrdered size={20} />
+        </button>
+      </div>
+
+      <div className="editor-content">
+        <div
+          ref={contentEditableRef}
+          className="content-editable"
+          contentEditable
+          suppressContentEditableWarning
+          onInput={handleContentChange}
+        />
+      </div>
     </div>
   )
 }
