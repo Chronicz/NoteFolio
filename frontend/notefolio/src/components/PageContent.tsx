@@ -16,12 +16,12 @@ export default function PageContent() {
         setBlocks(blocks.map((block) => (block.id === id ? { ...block, content } : block)))
     }
 
-    // 获取所有笔记内容，用于AI上下文
+    // Get all note content for AI context
     const getAllContent = () => {
         return blocks.map(block => block.content).join("\n\n")
     }
 
-    // 插入AI生成的内容到新块
+    // Insert AI-generated content into new blocks
     const insertAIContent = (content: string) => {
         const newBlock = { id: Date.now(), content }
         setBlocks([...blocks, newBlock])
@@ -39,7 +39,7 @@ export default function PageContent() {
                 </button>
             </div>
             
-            {/* AI助手组件 - 可以从环境变量获取API密钥 */}
+            {/* AI Assistant Component - API key can be obtained from environment variables */}
             <AIAssistant 
                 noteContent={getAllContent()} 
                 onInsertContent={insertAIContent} 
@@ -48,6 +48,7 @@ export default function PageContent() {
         </div>
     )
 }
+
 
 
 
