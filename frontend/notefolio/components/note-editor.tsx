@@ -1,147 +1,90 @@
-"use client"
+// "use client"
 
-import type React from "react"
+// import type React from "react"
 
-import { useState, useEffect } from "react"
-import type { Note } from "@/types/note"
+// import { useState, useEffect } from "react"
+// import { Menu, ImageIcon, FileText, AlignLeft, AlignCenter, AlignJustify } from "lucide-react"
+// import type { Note } from "@/lib/types"
 
-interface NoteEditorProps {
-  note: Note
-  onUpdateNote: (note: Note) => void
-}
+// interface NoteEditorProps {
+//   note: Note
+//   onUpdateNote: (note: Note) => void
+// }
 
-export default function NoteEditor({ note, onUpdateNote }: NoteEditorProps) {
-  // Use controlled components for both title and content
-  const [title, setTitle] = useState(note.title)
-  const [content, setContent] = useState(note.content)
+// export default function NoteEditor({ note, onUpdateNote }: NoteEditorProps) {
+//   const [title, setTitle] = useState(note.title)
+//   const [content, setContent] = useState(note.content)
 
-  // Update local state when the note prop changes
-  useEffect(() => {
-    setTitle(note.title)
-    setContent(note.content)
-  }, [note.id, note.title, note.content])
+//   useEffect(() => {
+//     setTitle(note.title)
+//     setContent(note.content)
+//   }, [note.id, note.title, note.content])
 
-  // Handle title changes
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTitle = e.target.value
-    setTitle(newTitle)
-    onUpdateNote({ ...note, title: newTitle })
-  }
+//   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     setTitle(e.target.value)
+//     onUpdateNote({
+//       ...note,
+//       title: e.target.value,
+//     })
+//   }
 
-  // Handle content changes
-  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newContent = e.target.value
-    setContent(newContent)
-    onUpdateNote({ ...note, content: newContent })
-  }
+//   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+//     setContent(e.target.value)
+//     onUpdateNote({
+//       ...note,
+//       content: e.target.value,
+//     })
+//   }
 
-  // Apply formatting by wrapping selected text with markdown syntax
-  const applyFormatting = (formatType: string) => {
-    const textarea = document.getElementById("note-content") as HTMLTextAreaElement
-    if (!textarea) return
+//   return (
+//     <div className="flex-1 flex flex-col">
+//       <div className="flex items-center p-4 border-b border-gray-200">
+//         <Menu className="mr-2" />
+//         <h1 className="text-xl font-medium">NoteFolio</h1>
+//       </div>
 
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selectedText = content.substring(start, end)
-    let formattedText = ""
-    let cursorOffset = 0
+//       <div className="p-4">
+//         <input
+//           type="text"
+//           value={title}
+//           onChange={handleTitleChange}
+//           className="text-2xl font-bold w-full mb-4 outline-none"
+//         />
 
-    switch (formatType) {
-      case "bold":
-        formattedText = `**${selectedText}**`
-        cursorOffset = 2
-        break
-      case "italic":
-        formattedText = `*${selectedText}*`
-        cursorOffset = 1
-        break
-      case "underline":
-        formattedText = `<u>${selectedText}</u>`
-        cursorOffset = 3
-        break
-      case "bullet":
-        formattedText = `\n- ${selectedText}`
-        cursorOffset = 3
-        break
-      case "number":
-        formattedText = `\n1. ${selectedText}`
-        cursorOffset = 4
-        break
-      default:
-        return
-    }
+//         <div className="flex gap-4 mb-4 border-b border-gray-200 pb-4">
+//           <button className="p-2 hover:bg-gray-100 rounded">
+//             <ImageIcon size={20} />
+//           </button>
+//           <button className="p-2 hover:bg-gray-100 rounded">
+//             <FileText size={20} />
+//           </button>
+//           <button className="p-2 hover:bg-gray-100 rounded">
+//             <AlignLeft size={20} />
+//           </button>
+//           <button className="p-2 hover:bg-gray-100 rounded">
+//             <AlignCenter size={20} />
+//           </button>
+//           <button className="p-2 hover:bg-gray-100 rounded">
+//             <AlignJustify size={20} />
+//           </button>
+//         </div>
 
-    // Create new content with the formatted text
-    const newContent = content.substring(0, start) + formattedText + content.substring(end)
+//         <textarea
+//           value={content}
+//           onChange={handleContentChange}
+//           className="w-full h-full outline-none resize-none"
+//           placeholder="Start typing..."
+//         />
+//       </div>
+//     </div>
+//   )
+// }
 
-    // Update state and parent
-    setContent(newContent)
-    onUpdateNote({ ...note, content: newContent })
 
-    // Reset focus and cursor position
-    setTimeout(() => {
-      textarea.focus()
-      const newPosition = start + formattedText.length
-      textarea.setSelectionRange(newPosition, newPosition)
-    }, 0)
-  }
-
+export default function Test() {
   return (
-    <div className="h-full flex flex-col">
-      <input
-        type="text"
-        value={title}
-        onChange={handleTitleChange}
-        className="text-xl font-medium px-4 py-2 w-full focus:outline-none border-b border-gray-200"
-        placeholder="Note title"
-      />
-
-      <div className="px-4 py-2 flex space-x-4 border-b border-gray-200">
-        <button
-          onClick={() => applyFormatting("bold")}
-          className="font-bold hover:bg-gray-100 px-2 py-1 rounded"
-          title="Bold"
-        >
-          B
-        </button>
-        <button
-          onClick={() => applyFormatting("italic")}
-          className="italic hover:bg-gray-100 px-2 py-1 rounded"
-          title="Italic"
-        >
-          I
-        </button>
-        <button
-          onClick={() => applyFormatting("underline")}
-          className="underline hover:bg-gray-100 px-2 py-1 rounded"
-          title="Underline"
-        >
-          U
-        </button>
-        <button
-          onClick={() => applyFormatting("bullet")}
-          className="hover:bg-gray-100 px-2 py-1 rounded"
-          title="Bullet List"
-        >
-          •
-        </button>
-        <button
-          onClick={() => applyFormatting("number")}
-          className="hover:bg-gray-100 px-2 py-1 rounded"
-          title="Numbered List"
-        >
-          1.
-        </button>
-      </div>
-
-      {/* Remove border from textarea */}
-      <textarea
-        id="note-content"
-        value={content}
-        onChange={handleContentChange}
-        className="flex-1 p-4 w-full resize-none focus:outline-none font-sans text-base"
-        placeholder="Start writing your notes here..."
-      />
+    <div className="text-red-500 bg-blue-500 p-4">
+      This should be red text on a blue background with padding
     </div>
   )
 }

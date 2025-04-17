@@ -2,135 +2,171 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 255, 255, 255;
-  --border-color: #e5e7eb;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
     "Helvetica Neue", sans-serif;
 }
 
-/* Basic styling for the textarea */
-textarea {
-  min-height: 200px;
-  line-height: 1.5;
+.app-container {
+  display: flex;
+  height: 100vh;
   width: 100%;
-  resize: none;
-  border: none;
-  padding: 1rem;
-  font-size: 1rem;
 }
 
-textarea:focus {
-  outline: none;
+.sidebar {
+  width: 250px;
+  background-color: #f2f2f2;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Add some basic styling for the note list */
-ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-/* Custom bullet point for sidebar items */
-.sidebar-bullet {
-  display: inline-block;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background-color: #000;
-  margin-right: 8px;
-  vertical-align: middle;
+.sidebar-title {
+  font-size: 18px;
+  font-weight: 500;
 }
 
-/* Format buttons */
-.format-btn {
+.add-button {
+  font-size: 24px;
   background: none;
   border: none;
-  padding: 0.25rem 0.5rem;
-  margin-right: 0.5rem;
   cursor: pointer;
-  border-radius: 0.25rem;
 }
 
-.format-btn:hover {
-  background-color: #f3f4f6;
+.note-list {
+  overflow-y: auto;
 }
 
-.format-btn.bold {
-  font-weight: bold;
-}
-
-.format-btn.italic {
-  font-style: italic;
-}
-
-.format-btn.underline {
-  text-decoration: underline;
-}
-
-/* Note title input */
-.note-title {
-  width: 100%;
-  border: none;
-  font-size: 1.25rem;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.note-title:focus {
-  outline: none;
-}
-
-/* Sidebar note item */
 .note-item {
-  padding: 0.75rem;
-  border-bottom: 1px solid var(--border-color);
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   cursor: pointer;
-}
-
-.note-item:hover {
-  background-color: #f9fafb;
 }
 
 .note-item.active {
-  background-color: #f3f4f6;
+  background-color: #e0e0e0;
 }
 
-.note-item-title {
+.note-item:hover:not(.active) {
+  background-color: #f9f9f9;
+}
+
+.note-info {
+  flex: 1;
+}
+
+.note-title {
   font-weight: 500;
-  margin-bottom: 0.25rem;
-  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+.note-time {
+  font-size: 12px;
+  color: #888;
+}
+
+.delete-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #999;
+}
+
+.delete-button:hover {
+  color: #666;
+}
+
+.editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.note-item-date {
-  font-size: 0.75rem;
-  color: #6b7280;
+.editor-header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+.menu-button {
+  margin-right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+.app-title {
+  font-size: 20px;
+  font-weight: 500;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
+.editor-content {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+.title-input {
+  font-size: 24px;
+  font-weight: bold;
+  width: 100%;
+  border: none;
+  outline: none;
+  margin-bottom: 16px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.toolbar-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.toolbar-button:hover {
+  background-color: #f2f2f2;
+}
+
+.content-textarea {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
 }
