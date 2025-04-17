@@ -352,7 +352,7 @@ Important formatting rules:
   const handleInsert = (content: string) => {
     // Convert content to formatted text by removing markdown
     const formattedContent = content
-      .replace(/###\s+/g, '') // Remove the ### mark
+      .replace(/###\s+/g, '') // Remove the ### mark 
       .replace(/\*\*([^*]+)\*\*/g, '$1') // Keep bold text but remove the marker
       .replace(/\[([^\]]+)\]:/g, '[$1]:') // Keep title format
       .trim();
