@@ -2,48 +2,29 @@
 
 import { useState, useEffect, useRef } from "react"
 
-/**
- * Props for the AIAssistant component
- * @param noteContent - The content of the current note being edited
- * @param onInsertContent - Callback function to insert AI content into the note
- */
 interface AIAssistantProps {
   noteContent: string
   onInsertContent: (content: string) => void
 }
 
-/**
- * Represents a single message in the chat conversation
- */
 interface Message {
-  role: 'user' | 'assistant'  // Who sent the message
-  content: string            // Message content 
-  timestamp: number          // When the message was sent
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: number
 }
 
-/**
- * Represents a stored conversation with multiple messages
- */
 interface Conversation {
-  id: string                // Unique conversation identifier
-  title: string             // Conversation title (derived from first user message)
-  messages: Message[]       // Messages in this conversation
-  createdAt: number         // When conversation was created
-  updatedAt: number         // When conversation was last updated
+  id: string
+  title: string
+  messages: Message[]
+  createdAt: number
+  updatedAt: number
 }
 
-/**
- * AI Assistant component that provides a chat interface for interacting with an AI
- * to get help with notes, templates, and organization
- */
 export default function AIAssistant({ noteContent, onInsertContent }: AIAssistantProps) {
-  // UI state
-  const [isOpen, setIsOpen] = useState(true)        // Whether the assistant panel is open
-  const [prompt, setPrompt] = useState("")          // Current user input
-  const [isLoading, setIsLoading] = useState(false) // Whether AI is generating a response
-  const [showSidebar, setShowSidebar] = useState(true) // Whether conversation history sidebar is visible
-  
-  // Conversation state
+  const [isOpen, setIsOpen] = useState(true)
+  const [prompt, setPrompt] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
   const [currentMessages, setCurrentMessages] = useState<Message[]>([
     { 
       role: 'assistant', 
@@ -59,51 +40,40 @@ Let me know! 😊`,
       timestamp: Date.now()
     }
   ])
-  const [conversations, setConversations] = useState<Conversation[]>([])       // All saved conversations
-  const [currentConversationId, setCurrentConversationId] = useState<string>("") // Active conversation ID
+  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [currentConversationId, setCurrentConversationId] = useState<string>("")
+  const [showSidebar, setShowSidebar] = useState(true)
   
-  // Reference to the bottom of the message area for auto-scrolling
   const messagesEndRef = useRef<HTMLDivElement>(null)
   
-  /**
-   * On initial load, fetch saved conversations from localStorage
-   * and create a new conversation if none exists
-   */
+  // Load conversation history from localStorage
   useEffect(() => {
-    // Load conversations from localStorage
     const savedConversations = localStorage.getItem('notefolio_conversations')
     if (savedConversations) {
       setConversations(JSON.parse(savedConversations))
     }
     
-    // Create a new conversation if none is active
+    // If no active conversation exists, create a new one
     if (!currentConversationId) {
       createNewConversation()
     }
   }, [])
   
-  /**
-   * Save conversations to localStorage whenever they change
-   */
+  // Save conversations to localStorage
   useEffect(() => {
     if (conversations.length > 0) {
       localStorage.setItem('notefolio_conversations', JSON.stringify(conversations))
     }
   }, [conversations])
   
-  /**
-   * Update the current conversation in the conversations list
-   * whenever new messages are added
-   */
+  // Update current conversation
   useEffect(() => {
     if (currentConversationId && currentMessages.length > 1) {
       updateConversation(currentConversationId, currentMessages)
     }
   }, [currentMessages])
   
-  /**
-   * Creates a new conversation and sets it as active
-   */
+  // Create new conversation
   const createNewConversation = () => {
     const newId = 'conv_' + Date.now()
     const newConversation: Conversation = {
@@ -114,26 +84,20 @@ Let me know! 😊`,
       updatedAt: Date.now()
     }
     
-    // Add new conversation to the list and set as current
     setConversations(prev => [newConversation, ...prev])
     setCurrentConversationId(newId)
     setCurrentMessages([currentMessages[0]])
   }
   
-  /**
-   * Updates an existing conversation with new messages
-   * @param id - Conversation ID to update
-   * @param messages - New messages array
-   */
+  // Update conversation
   const updateConversation = (id: string, messages: Message[]) => {
     // Generate title from first user message
     let title = 'New Conversation'
     if (messages.length > 1 && messages[1].role === 'user') {
-      // Use first user message as the title (truncated if needed)
+      // Use first user message as the title
       title = messages[1].content.substring(0, 30) + (messages[1].content.length > 30 ? '...' : '')
     }
     
-    // Update conversation in the list
     setConversations(prev => 
       prev.map(conv => 
         conv.id === id 
@@ -143,10 +107,7 @@ Let me know! 😊`,
     )
   }
   
-  /**
-   * Loads a conversation from history and makes it active
-   * @param id - Conversation ID to load
-   */
+  // Load conversation
   const loadConversation = (id: string) => {
     const conversation = conversations.find(c => c.id === id)
     if (conversation) {
@@ -160,13 +121,9 @@ Let me know! 😊`,
     }
   }
   
-  /**
-   * Deletes a conversation from history
-   * @param id - Conversation ID to delete
-   * @param e - Click event
-   */
+  // Delete conversation
   const deleteConversation = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent event bubbling to avoid loading the conversation
+    e.stopPropagation() // Prevent event bubbling
     
     if (confirm('Are you sure you want to delete this conversation?')) {
       setConversations(prev => prev.filter(c => c.id !== id))
@@ -178,38 +135,32 @@ Let me know! 😊`,
     }
   }
   
-  /**
-   * Gets the API key from environment variables or localStorage
-   * @returns The API key string or empty string if not found
-   */
+  // Get API key from localStorage
   const getApiKey = () => {
+    
     const envApiKey = process.env.NEXT_PUBLIC_NOTEFOLIO_API_KEY;
+    
+    
     const localStorageApiKey = localStorage.getItem('notefolio_api_key') || "";
     
     return envApiKey || localStorageApiKey;
   }
   
-  /**
-   * Scrolls to the bottom of the message area
-   */
+  // Scroll to the latest message
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
   
-  /**
-   * Auto-scroll when new messages are added
-   */
+  // Scroll to bottom when message list updates
   useEffect(() => {
     scrollToBottom()
   }, [currentMessages])
   
-  /**
-   * Calls the AI API with current conversation context and prompt
-   */
+  // Call AI API
   const callAI = async () => {
     if (!prompt.trim()) return
     
-    // Add user message to the conversation
+    // Add user message
     const userMessage: Message = { 
       role: 'user', 
       content: prompt,
@@ -217,12 +168,11 @@ Let me know! 😊`,
     }
     setCurrentMessages(prev => [...prev, userMessage])
     
-    // Clear input and show loading state
+    // Clear input
     setPrompt("")
     setIsLoading(true)
     
     try {
-      // Get API key and validate
       const apiKey = getApiKey()
       if (!apiKey) {
         const errorMessage: Message = {
@@ -235,7 +185,7 @@ Let me know! 😊`,
         return
       }
       
-      // Prepare API request with system prompt and conversation history
+      // Prepare API request message history
       const apiMessages = [
         {
           role: "system",
@@ -264,7 +214,7 @@ Important formatting rules:
       
       // Add recent message history (skip welcome message)
       const messageHistory = currentMessages.slice(1)
-      const recentMessages = messageHistory.slice(-5) // Only use last 5 messages for context
+      const recentMessages = messageHistory.slice(-5)
       recentMessages.forEach(msg => {
         apiMessages.push({
           role: msg.role,
@@ -272,13 +222,12 @@ Important formatting rules:
         })
       })
       
-      // Add current user question with optional note content
+      // Add current user question
       apiMessages.push({
         role: "user",
         content: prompt + (noteContent ? `\n\nHere's my current note content: ${noteContent}` : "")
       })
       
-      // Set up API request options
       const options = {
         method: 'POST',
         headers: {
@@ -289,25 +238,23 @@ Important formatting rules:
           model: "Qwen/QwQ-32B",
           messages: apiMessages,
           stream: false,
-          max_tokens: 2000, // Token limit for response
+          max_tokens: 2000, // Increased token limit
           stop: null,
-          temperature: 0.4, // Lower temperature for more focused responses
+          temperature: 0.4,
           top_p: 0.7,
           top_k: 40,
-          frequency_penalty: 0.5, // Reduce repetition
+          frequency_penalty: 0.5,
           n: 1,
           response_format: { type: "text" }
         })
       }
 
-      // Make API request
       const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', options)
       
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`)
       }
       
-      // Process API response
       const data = await response.json()
       
       if (data && data.choices && data.choices.length > 0 && data.choices[0].message) {
@@ -334,10 +281,7 @@ Important formatting rules:
     }
   }
 
-  /**
-   * Handles keyboard input for submitting prompt
-   * @param e - Keyboard event
-   */
+  // Call AI when Enter key is pressed
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -345,32 +289,25 @@ Important formatting rules:
     }
   }
   
-  /**
-   * Formats AI content and inserts it into the note
-   * @param content - AI response content to insert
-   */
+  // Insert to note
   const handleInsert = (content: string) => {
-    // Convert content to formatted text by removing markdown
+    // Convert content to formatted text
     const formattedContent = content
-      .replace(/###\s+/g, '') // Remove the ### mark 
+      .replace(/###\s+/g, '') // Remove the ### mark
       .replace(/\*\*([^*]+)\*\*/g, '$1') // Keep bold text but remove the marker
       .replace(/\[([^\]]+)\]:/g, '[$1]:') // Keep title format
       .trim();
       
-    // Pass formatted content to parent component
+    // Use formatted content
     onInsertContent(formattedContent);
   }
   
-  /**
-   * Formats a timestamp into a localized date string
-   * @param timestamp - Unix timestamp
-   * @returns Formatted date string
-   */
+  // Format date
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleString()
   }
   
-  // Quick prompt suggestions for new conversations
+  // Quick prompt options
   const quickPrompts = [
     "Organize my note structure",
     "Create a study note template",
@@ -378,7 +315,7 @@ Important formatting rules:
     "Provide a meeting notes template"
   ]
 
-  // Display just the floating button when minimized
+  // Floating button (when closed)
   if (!isOpen) {
     return (
       <button 
@@ -392,7 +329,35 @@ Important formatting rules:
     )
   }
 
-  // Main component UI with sidebar and chat area
+  // 安全的HTML内容处理函数
+  const safeHtml = (content: string) => {
+    if (!content) return '';
+    
+    try {
+      // 基本HTML转义
+      const escapedContent = content
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+      
+      // 应用格式化，但确保生成有效HTML
+      return escapedContent
+        .replace(/\[([^\]]+)\]:/g, '<strong class="text-blue-600">[$1]:</strong><br/>')
+        .replace(/•/g, '•')
+        .replace(/\n\s*-\s/g, '<br>&nbsp;&nbsp;- ')
+        .replace(/\n/g, '<br>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/😊|🙂|😀|👍|✅/g, match => match);
+    } catch (e) {
+      console.error('HTML formatting error:', e);
+      // 出错时返回纯文本
+      return content;
+    }
+  };
+
   return (
     <div className="fixed bottom-6 right-6 md:w-[800px] w-[95vw] max-w-[95vw] h-[600px] bg-white rounded-xl shadow-xl overflow-hidden z-50 flex">
       {/* Left sidebar for conversation history */}
@@ -478,7 +443,7 @@ Important formatting rules:
           </div>
         </div>
         
-        {/* Chat content area displaying messages */}
+        {/* Chat content area */}
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-gray-50">
           {currentMessages.map((message, index) => (
             <div 
@@ -489,23 +454,12 @@ Important formatting rules:
                   : 'bg-white text-gray-800 self-start border border-gray-200'
               } max-w-[90%] p-4 rounded-lg whitespace-pre-wrap shadow-sm`}
             >
-              {!message.content ? (
-                <div className="text-red-500">Content not available. Please try again.</div>
-              ) : (
-                // Convert message content to styled HTML with formatting
+              {message.content ? (
                 <div className="markdown-content" dangerouslySetInnerHTML={{ 
-                  __html: message.content
-                    ? message.content
-                        .replace(/^###\s*(.+)$/gm, '$1')
-                        .replace(/\[([^\]]+)\]:/g, '<strong class="text-blue-600">[$1]:</strong><br/>')
-                        .replace(/•/g, '•')
-                        .replace(/\n\s*-\s/g, '<br>&nbsp;&nbsp;- ')
-                        .replace(/\n/g, '<br>')
-                        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-                        .replace(/😊|🙂|😀|👍|✅/g, match => match)
-                    : 'Content unavailable'
+                  __html: safeHtml(message.content)
                 }} />
+              ) : (
+                <div className="text-red-500">Content not available</div>
               )}
               
               <div className="mt-2 flex justify-between items-center">
@@ -513,7 +467,6 @@ Important formatting rules:
                   {formatDate(message.timestamp)}
                 </div>
                 
-                {/* Show Insert button only for assistant messages */}
                 {message.role === 'assistant' && message.content && (
                   <button
                     onClick={() => handleInsert(message.content)}
@@ -526,7 +479,6 @@ Important formatting rules:
             </div>
           ))}
           
-          {/* Loading indicator (typing animation dots) */}
           {isLoading && (
             <div className="self-start bg-white p-4 rounded-lg flex items-center text-gray-500 border border-gray-200 shadow-sm">
               <div className="inline-block animate-bounce h-2 w-2 rounded-full bg-gray-500 mr-1"></div>
@@ -535,11 +487,10 @@ Important formatting rules:
             </div>
           )}
           
-          {/* Invisible reference element for auto-scrolling */}
           <div ref={messagesEndRef} />
         </div>
         
-        {/* Quick prompt suggestions (only shown in new conversations) */}
+        {/* Quick prompts */}
         {currentMessages.length <= 1 && !isLoading && (
           <div className="px-4 py-3 bg-gray-100 grid grid-cols-2 gap-2 flex-shrink-0">
             {quickPrompts.map((promptText, index) => (
@@ -557,7 +508,7 @@ Important formatting rules:
           </div>
         )}
         
-        {/* Input area for typing messages */}
+        {/* Input area */}
         <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0">
           <div className="flex gap-2">
             <textarea
@@ -586,4 +537,4 @@ Important formatting rules:
       </div>
     </div>
   )
-}
+} 
