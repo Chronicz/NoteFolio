@@ -7,6 +7,7 @@ interface Note {
   title: string
   content: string
   timestamp: string
+  htmlContent?: string
 }
 
 interface NoteContextType {
@@ -27,12 +28,14 @@ export function NoteProvider({ children }: { children: ReactNode }) {
       title: "Hello World",
       content: "Hello class. This is Notefolio",
       timestamp: "03:45 PM",
+      htmlContent: "Hello class. This is Notefolio",
     },
     {
       id: "2",
       title: "Untitled Note",
       content: "",
       timestamp: "03:57 PM",
+      htmlContent: "",
     },
   ])
   const [activeNoteId, setActiveNoteId] = useState("1")
@@ -43,6 +46,7 @@ export function NoteProvider({ children }: { children: ReactNode }) {
       title: "Untitled Note",
       content: "",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      htmlContent: "",
     }
     setNotes([...notes, newNote])
     setActiveNoteId(newNote.id)

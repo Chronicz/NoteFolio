@@ -17,6 +17,11 @@ body {
     display: flex;
     height: 100vh;
     width: 100%;
+    transition: all 0.3s ease;
+}
+
+.sidebar-hidden {
+    padding-left: 0;
 }
 
 /* Sidebar styles */
@@ -26,7 +31,8 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
-    background-color: #f8f9fa;
+    background-color: #f8fafc;
+    transition: all 0.3s ease;
 }
 
 .sidebar-header {
@@ -38,8 +44,9 @@ body {
 }
 
 .sidebar-title {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
+    color: #1a202c;
 }
 
 .add-button {
@@ -49,13 +56,15 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 4px;
+    width: 24px;
+    height: 24px;
+    font-size: 20px;
+    line-height: 1;
+    color: #4a5568;
 }
 
 .add-button:hover {
-    background-color: #e2e8f0;
+    color: #2d3748;
 }
 
 .notes-list {
@@ -68,19 +77,21 @@ body {
     border-bottom: 1px solid #e2e8f0;
     cursor: pointer;
     position: relative;
+    background-color: #fff;
 }
 
 .note-item:hover {
-    background-color: #edf2f7;
+    background-color: #f7fafc;
 }
 
 .note-item.active {
-    background-color: #e2e8f0;
+    background-color: #e5edf5;
 }
 
 .note-title {
     font-weight: 500;
     margin-bottom: 4px;
+    color: #1a202c;
 }
 
 .note-time {
@@ -95,11 +106,14 @@ body {
     background: none;
     border: none;
     cursor: pointer;
-    color: #a0aec0;
+    color: #cbd5e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .delete-button:hover {
-    color: #718096;
+    color: #a0aec0;
 }
 
 /* Editor styles */
@@ -117,6 +131,21 @@ body {
     border-bottom: 1px solid #e2e8f0;
 }
 
+.menu-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.menu-button:hover {
+    background-color: #f7fafc;
+}
+
 .app-title {
     font-size: 16px;
     font-weight: 600;
@@ -127,6 +156,21 @@ body {
     font-size: 28px;
     font-weight: 700;
     padding: 24px 24px 16px 24px;
+    cursor: pointer;
+}
+
+.editor-title:hover {
+    background-color: #f7fafc;
+}
+
+.editor-title-input {
+    font-size: 28px;
+    font-weight: 700;
+    padding: 24px 24px 16px 24px;
+    border: none;
+    outline: none;
+    width: 100%;
+    background-color: #f7fafc;
 }
 
 .toolbar {
@@ -162,4 +206,40 @@ body {
     outline: none;
     min-height: 200px;
     line-height: 1.6;
+}
+
+.editor-footer {
+    padding: 12px 24px;
+    border-top: 1px solid #e2e8f0;
+    color: #718096;
+    font-size: 12px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.word-count {
+    color: #718096;
+}
+
+/* Rich text formatting styles */
+.content-editable strong {
+    font-weight: bold;
+}
+
+.content-editable em {
+    font-style: italic;
+}
+
+.content-editable u {
+    text-decoration: underline;
+}
+
+.content-editable ul,
+.content-editable ol {
+    margin-left: 20px;
+}
+
+.content-editable img {
+    max-width: 100%;
+    height: auto;
 }
