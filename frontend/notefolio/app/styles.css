@@ -67,6 +67,79 @@ body {
     color: #2d3748;
 }
 
+/* Search styles */
+.search-container {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 8px;
+    color: #a0aec0;
+}
+
+.search-input {
+    width: 100%;
+    padding: 6px 28px 6px 28px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    font-size: 14px;
+    outline: none;
+}
+
+.search-input:focus {
+    border-color: #cbd5e0;
+    box-shadow: 0 0 0 1px rgba(66, 153, 225, 0.5);
+}
+
+.clear-search {
+    position: absolute;
+    right: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #a0aec0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clear-search:hover {
+    color: #718096;
+}
+
+.search-options {
+    display: flex;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.search-option {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.search-option input {
+    cursor: pointer;
+}
+
+.no-results {
+    padding: 16px;
+    text-align: center;
+    color: #718096;
+    font-size: 14px;
+}
+
 .notes-list {
     flex: 1;
     overflow-y: auto;
@@ -92,6 +165,30 @@ body {
     font-weight: 500;
     margin-bottom: 4px;
     color: #1a202c;
+}
+
+.note-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.note-tag {
+    font-size: 10px;
+    padding: 2px 6px;
+    background-color: #edf2f7;
+    color: #4a5568;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+.note-tag-more {
+    font-size: 10px;
+    padding: 2px 6px;
+    background-color: #e2e8f0;
+    color: #4a5568;
+    border-radius: 12px;
 }
 
 .note-time {
@@ -171,6 +268,85 @@ body {
     outline: none;
     width: 100%;
     background-color: #f7fafc;
+}
+
+/* Tags styles */
+.tags-container {
+    padding: 0 24px 16px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background-color: #edf2f7;
+    color: #4a5568;
+    border-radius: 16px;
+    font-size: 12px;
+}
+
+.remove-tag {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a0aec0;
+}
+
+.remove-tag:hover {
+    color: #718096;
+}
+
+.add-tag-form {
+    display: flex;
+    align-items: center;
+}
+
+.tag-input {
+    padding: 4px 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    font-size: 12px;
+    outline: none;
+    width: 100px;
+}
+
+.tag-input:focus {
+    border-color: #cbd5e0;
+    box-shadow: 0 0 0 1px rgba(66, 153, 225, 0.5);
+}
+
+.add-tag-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a0aec0;
+    margin-left: 4px;
+}
+
+.add-tag-button:hover:not(:disabled) {
+    color: #718096;
+}
+
+.add-tag-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
 }
 
 .toolbar {

@@ -1,23 +1,24 @@
 "use client"
 
 import type React from "react"
-import AIAssistant from "./ai-assistant"
 
 import { useState, useRef, useEffect } from "react"
-import { ImageIcon, FileText, AlignLeft, List, ListOrdered, Menu, Bold, Italic, Underline } from "lucide-react"
+import { ImageIcon, FileText, AlignLeft, List, ListOrdered, Menu, Bold, Italic, Underline, X, Plus } from "lucide-react"
 import { useNotes } from "./note-context"
 
 export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => void }) {
-  const { notes, activeNoteId, updateNote } = useNotes()
+  const { notes, activeNoteId, updateNote, addTag, removeTag } = useNotes()
   const activeNote = notes.find((note) => note.id === activeNoteId) || notes[0]
 
   const [wordCount, setWordCount] = useState(0)
   const [charCount, setCharCount] = useState(0)
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [titleValue, setTitleValue] = useState(activeNote?.title || "")
+  const [newTag, setNewTag] = useState("")
 
   const contentEditableRef = useRef<HTMLDivElement>(null)
   const titleInputRef = useRef<HTMLInputElement>(null)
+  const tagInputRef = useRef<HTMLInputElement>(null)
 
   // Sync the content state with the contentEditable element when active note changes
   useEffect(() => {
@@ -80,6 +81,25 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
     }
   }
 
+  const handleNewTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewTag(e.target.value)
+  }
+
+  const handleAddTag = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newTag.trim() && activeNote) {
+      addTag(activeNote.id, newTag.trim())
+      setNewTag("")
+      tagInputRef.current?.focus()
+    }
+  }
+
+  const handleRemoveTag = (tag: string) => {
+    if (activeNote) {
+      removeTag(activeNote.id, tag)
+    }
+  }
+
   // Format text functions
   const formatText = (command: string, value = "") => {
     document.execCommand(command, false, value)
@@ -87,8 +107,6 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
     // Focus back on the editor
     contentEditableRef.current?.focus()
   }
-
-
 
   return (
     <div className="editor-container">
@@ -114,6 +132,32 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
           {activeNote?.title || "Untitled Note"}
         </h1>
       )}
+
+      <div className="tags-container">
+        <div className="tags-list">
+          {activeNote?.tags.map((tag) => (
+            <div key={tag} className="tag">
+              <span>{tag}</span>
+              <button className="remove-tag" onClick={() => handleRemoveTag(tag)}>
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+        <form onSubmit={handleAddTag} className="add-tag-form">
+          <input
+            ref={tagInputRef}
+            type="text"
+            className="tag-input"
+            placeholder="Add tag..."
+            value={newTag}
+            onChange={handleNewTagChange}
+          />
+          <button type="submit" className="add-tag-button" disabled={!newTag.trim()}>
+            <Plus size={14} />
+          </button>
+        </form>
+      </div>
 
       <div className="toolbar">
         <button className="toolbar-button" aria-label="Bold text" onClick={() => formatText("bold")}>
