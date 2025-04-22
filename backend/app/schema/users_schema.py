@@ -19,14 +19,9 @@ class UpdateUser(BaseModel):
     email:Optional[str]=None
     password:Optional[str]=None
 
-class Token(BaseModel):
-    access_token:str
-    token_type:str
-
 class UserLogin(BaseModel):
     email: str = Field(..., regex=r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
     password: str = Field(..., regex=r"^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+={}\[\]:;'\"<>,.?/-]).{6,80}$")
-
 
 class TokenData(BaseModel):
     pass
