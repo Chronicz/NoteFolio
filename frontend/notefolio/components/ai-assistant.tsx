@@ -1,537 +1,524 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from 'react'
+import { X, Send, History, Trash, ExternalLink, Languages, RotateCcw, Copy, ArrowDown, PlusCircle } from 'lucide-react'
+import { useNotes } from './note-context'
 
 interface AIAssistantProps {
-    noteContent: string
-    onInsertContent: (content: string) => void
+  isOpen: boolean
+  onClose: () => void
 }
 
 interface Message {
-    role: 'user' | 'assistant'
-    content: string
-    timestamp: number
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: number
 }
 
-interface Conversation {
-    id: string
-    title: string
-    messages: Message[]
-    createdAt: number
-    updatedAt: number
+interface ChatHistory {
+  id: string
+  title: string
+  messages: Message[]
+  timestamp: number
 }
 
-export default function AIAssistant({ noteContent, onInsertContent }: AIAssistantProps) {
-    const [isOpen, setIsOpen] = useState(true)
-    const [prompt, setPrompt] = useState("")
-    const [isLoading, setIsLoading] = useState(false)
-    const [currentMessages, setCurrentMessages] = useState<Message[]>([
-        {
-            role: 'assistant',
-            content: `• Welcome to NoteFolio! How can I help?
-• Need assistance with:
-  - Pages/databases
-  - Blocks/templates
-  - Integrations
-  - Setup/tips
-  - Something else?
-
-Let me know! 😊`,
-            timestamp: Date.now()
+interface AIResponse {
+  id: string
+  choices: {
+    message: {
+      role: string
+      content: string
+      reasoning_content?: string
+      tool_calls?: {
+        id: string
+        type: string
+        function: {
+          name: string
+          arguments: string
         }
-    ])
-    const [conversations, setConversations] = useState<Conversation[]>([])
-    const [currentConversationId, setCurrentConversationId] = useState<string>("")
-    const [showSidebar, setShowSidebar] = useState(true)
-
-    const messagesEndRef = useRef<HTMLDivElement>(null)
-
-    // Load conversation history from localStorage
-    useEffect(() => {
-        const savedConversations = localStorage.getItem('notefolio_conversations')
-        if (savedConversations) {
-            setConversations(JSON.parse(savedConversations))
-        }
-
-        // If no active conversation exists, create a new one
-        if (!currentConversationId) {
-            createNewConversation()
-        }
-    }, [])
-
-    // Save conversations to localStorage
-    useEffect(() => {
-        if (conversations.length > 0) {
-            localStorage.setItem('notefolio_conversations', JSON.stringify(conversations))
-        }
-    }, [conversations])
-
-    // Update current conversation
-    useEffect(() => {
-        if (currentConversationId && currentMessages.length > 1) {
-            updateConversation(currentConversationId, currentMessages)
-        }
-    }, [currentMessages])
-
-    // Create new conversation
-    const createNewConversation = () => {
-        const newId = 'conv_' + Date.now()
-        const newConversation: Conversation = {
-            id: newId,
-            title: 'New Conversation ' + new Date().toLocaleDateString(),
-            messages: [currentMessages[0]], // Keep welcome message
-            createdAt: Date.now(),
-            updatedAt: Date.now()
-        }
-
-        setConversations(prev => [newConversation, ...prev])
-        setCurrentConversationId(newId)
-        setCurrentMessages([currentMessages[0]])
+      }[]
     }
+    finish_reason: string
+  }[]
+  usage: {
+    prompt_tokens: number
+    completion_tokens: number
+    total_tokens: number
+  }
+  created: number
+  model: string
+  object: string
+}
 
-    // Update conversation
-    const updateConversation = (id: string, messages: Message[]) => {
-        // Generate title from first user message
-        let title = 'New Conversation'
-        if (messages.length > 1 && messages[1].role === 'user') {
-            // Use first user message as the title
-            title = messages[1].content.substring(0, 30) + (messages[1].content.length > 30 ? '...' : '')
+export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
+  const { notes, activeNoteId, updateNote } = useNotes()
+  const activeNote = notes.find((note) => note.id === activeNoteId) || notes[0]
+  
+  const [input, setInput] = useState('')
+  const [messages, setMessages] = useState<Message[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [showHistory, setShowHistory] = useState(false)
+  const [chatHistory, setChatHistory] = useState<ChatHistory[]>([])
+  const [activeChatId, setActiveChatId] = useState<string | null>(null)
+  const [useNoteContent, setUseNoteContent] = useState(false)
+  const [language, setLanguage] = useState<'zh' | 'en'>('zh')
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // 从本地存储加载聊天历史
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('chatHistory')
+    if (savedHistory) {
+      try {
+        setChatHistory(JSON.parse(savedHistory))
+      } catch (e) {
+        console.error('Failed to parse chat history', e)
+      }
+    }
+  }, [])
+
+  // 保存聊天历史到本地存储
+  useEffect(() => {
+    if (chatHistory.length > 0) {
+      localStorage.setItem('chatHistory', JSON.stringify(chatHistory))
+    }
+  }, [chatHistory])
+
+  // 当消息变化时滚动到底部
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  // 当对话窗口打开时，自动聚焦输入框
+  useEffect(() => {
+    if (isOpen) {
+      textareaRef.current?.focus()
+    }
+  }, [isOpen])
+
+  // 当笔记发生变化时，更新是否使用笔记内容的状态
+  useEffect(() => {
+    setUseNoteContent(false)
+  }, [activeNoteId])
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    
+    if (!input.trim() && !useNoteContent) return
+    
+    const userContent = useNoteContent 
+      ? `${input.trim() ? input + "\n\n" : ""}笔记内容：\n${activeNote.content}`
+      : input
+
+    const userMessage: Message = {
+      role: 'user',
+      content: userContent,
+      timestamp: Date.now()
+    }
+    
+    setMessages((prev) => [...prev, userMessage])
+    setInput('')
+    setIsLoading(true)
+    setError(null)
+    setUseNoteContent(false)
+    
+    try {
+      const apiKey = process.env.NEXT_PUBLIC_AI_API_KEY
+      
+      if (!apiKey) {
+        throw new Error('API密钥未设置。请检查.env.local文件。')
+      }
+      
+      // 根据当前选择的语言添加系统消息
+      const systemMessage = {
+        role: "system",
+        content: language === 'zh' 
+          ? "你是一个AI助手，请使用中文回答问题。" 
+          : "You are an AI assistant. Please respond in English."
+      }
+
+      const options = {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "Qwen/QwQ-32B",
+          messages: [
+            systemMessage, 
+            ...messages.map(msg => ({
+              role: msg.role,
+              content: msg.content
+            })), 
+            {
+              role: userMessage.role,
+              content: userMessage.content
+            }
+          ],
+          stream: false,
+          max_tokens: 1000,
+          stop: null,
+          temperature: 0.7,
+          top_p: 0.7,
+          top_k: 50,
+          frequency_penalty: 0.5,
+          n: 1,
+          response_format: { type: "text" }
+        })
+      }
+      
+      const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', options)
+      
+      if (!response.ok) {
+        throw new Error(`API请求失败: ${response.status}`)
+      }
+      
+      const data: AIResponse = await response.json()
+      
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: data.choices[0].message.content,
+        timestamp: Date.now()
+      }
+      
+      setMessages((prev) => [...prev, assistantMessage])
+      
+      // 如果是新对话，创建一个新的聊天历史
+      if (!activeChatId) {
+        const newChatId = `chat_${Date.now()}`
+        const chatTitle = input.trim() 
+          ? input.slice(0, 30) + (input.length > 30 ? '...' : '')
+          : '基于笔记内容的对话'
+        
+        const newChat: ChatHistory = {
+          id: newChatId,
+          title: chatTitle,
+          messages: [userMessage, assistantMessage],
+          timestamp: Date.now()
         }
-
-        setConversations(prev =>
-            prev.map(conv =>
-                conv.id === id
-                    ? { ...conv, messages, title, updatedAt: Date.now() }
-                    : conv
-            )
+        
+        setChatHistory((prev) => [newChat, ...prev])
+        setActiveChatId(newChatId)
+      } else {
+        // 更新现有聊天
+        setChatHistory((prev) => 
+          prev.map((chat) => 
+            chat.id === activeChatId 
+              ? { ...chat, messages: [...chat.messages, userMessage, assistantMessage], timestamp: Date.now() } 
+              : chat
+          )
         )
+      }
+    } catch (err) {
+      console.error('API请求错误:', err)
+      setError(err instanceof Error ? err.message : '请求失败，请稍后重试')
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    // Load conversation
-    const loadConversation = (id: string) => {
-        const conversation = conversations.find(c => c.id === id)
-        if (conversation) {
-            setCurrentMessages(conversation.messages)
-            setCurrentConversationId(id)
-
-            // Close sidebar on mobile after loading a conversation
-            if (window.innerWidth < 768) {
-                setShowSidebar(false)
-            }
-        }
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSubmit()
     }
+  }
 
-    // Delete conversation
-    const deleteConversation = (id: string, e: React.MouseEvent) => {
-        e.stopPropagation() // Prevent event bubbling
+  const startNewChat = () => {
+    setMessages([])
+    setActiveChatId(null)
+    setInput('')
+    setError(null)
+    textareaRef.current?.focus()
+  }
 
-        if (confirm('Are you sure you want to delete this conversation?')) {
-            setConversations(prev => prev.filter(c => c.id !== id))
-
-            // If deleting current conversation, create a new one
-            if (id === currentConversationId) {
-                createNewConversation()
-            }
-        }
+  const loadChat = (chatId: string) => {
+    const chat = chatHistory.find((c) => c.id === chatId)
+    if (chat) {
+      setMessages(chat.messages)
+      setActiveChatId(chatId)
+      setShowHistory(false)
     }
+  }
 
-    // Get API key from localStorage
-    const getApiKey = () => {
-
-        const envApiKey = process.env.NEXT_PUBLIC_NOTEFOLIO_API_KEY;
-
-
-        const localStorageApiKey = localStorage.getItem('notefolio_api_key') || "";
-
-        return envApiKey || localStorageApiKey;
+  const deleteChat = (chatId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setChatHistory((prev) => prev.filter((chat) => chat.id !== chatId))
+    if (chatId === activeChatId) {
+      setMessages([])
+      setActiveChatId(null)
     }
+  }
 
-    // Scroll to the latest message
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  const formatTimestamp = (timestamp: number) => {
+    const date = new Date(timestamp)
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+
+  const formatDate = (timestamp: number) => {
+    const date = new Date(timestamp)
+    return date.toLocaleDateString()
+  }
+
+  // 将AI助手的回答插入笔记
+  const insertToNote = (content: string) => {
+    if (activeNote) {
+      const updatedHtmlContent = activeNote.htmlContent 
+        ? `${activeNote.htmlContent}<div class="ai-response-content">${content.replace(/\n/g, '<br>')}</div>`
+        : `<div class="ai-response-content">${content.replace(/\n/g, '<br>')}</div>`
+
+      const updatedContent = activeNote.content 
+        ? `${activeNote.content}\n\n${content}`
+        : content
+
+      updateNote(activeNote.id, {
+        content: updatedContent,
+        htmlContent: updatedHtmlContent,
+      })
     }
+  }
 
-    // Scroll to bottom when message list updates
-    useEffect(() => {
-        scrollToBottom()
-    }, [currentMessages])
+  // 使用笔记内容作为用户输入的一部分
+  const useCurrentNoteContent = () => {
+    setUseNoteContent(true)
+    textareaRef.current?.focus()
+  }
 
-    // Call AI API
-    const callAI = async () => {
-        if (!prompt.trim()) return
+  // 切换语言
+  const toggleLanguage = () => {
+    setLanguage(prev => prev === 'zh' ? 'en' : 'zh')
+  }
+  
+  // 获取语言显示文本
+  const getLanguageText = () => {
+    return language === 'zh' ? '中/英' : 'CN/EN'
+  }
 
-        // Add user message
-        const userMessage: Message = {
-            role: 'user',
-            content: prompt,
-            timestamp: Date.now()
-        }
-        setCurrentMessages(prev => [...prev, userMessage])
-
-        // Clear input
-        setPrompt("")
-        setIsLoading(true)
-
-        try {
-            const apiKey = getApiKey()
-            if (!apiKey) {
-                const errorMessage: Message = {
-                    role: 'assistant',
-                    content: "API key not found. Please set it in the .env.local file or localStorage.",
-                    timestamp: Date.now()
-                }
-                setCurrentMessages(prev => [...prev, errorMessage])
-                setIsLoading(false)
-                return
-            }
-
-            // Prepare API request message history
-            const apiMessages = [
-                {
-                    role: "system",
-                    content: `You are an AI assistant for NoteFolio, please answer questions using the following format:
-
-[Question Restatement]: {Briefly restate the user's question}
-
-[Direct Answer]: {Provide the core answer to the question, concisely}
-
-[Detailed Explanation]: {Provide further background, concept clarification, or details}
-
-${noteContent ? "[Related Note Content]: {Provide suggestions based on the user's current note}" : ""}
-
-[Related Examples]: {If applicable, provide 1-2 specific examples}
-
-[Summary]: {Briefly summarize the key points}
-
-Important formatting rules:
-1. Use "•" for main points, "-" for sub-points
-2. Use clear headings specified in brackets [Heading]: format
-3. DO NOT use markdown headings with # or ### symbols
-4. Emphasize key information with **bold** or *italic* text
-5. Use emojis occasionally to add friendliness`
-                }
-            ]
-
-            // Add recent message history (skip welcome message)
-            const messageHistory = currentMessages.slice(1)
-            const recentMessages = messageHistory.slice(-5)
-            recentMessages.forEach(msg => {
-                apiMessages.push({
-                    role: msg.role,
-                    content: msg.content
-                })
-            })
-
-            // Add current user question
-            apiMessages.push({
-                role: "user",
-                content: prompt + (noteContent ? `\n\nHere's my current note content: ${noteContent}` : "")
-            })
-
-            const options = {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model: "Qwen/QwQ-32B",
-                    messages: apiMessages,
-                    stream: false,
-                    max_tokens: 2000, // Increased token limit
-                    stop: null,
-                    temperature: 0.4,
-                    top_p: 0.7,
-                    top_k: 40,
-                    frequency_penalty: 0.5,
-                    n: 1,
-                    response_format: { type: "text" }
-                })
-            }
-
-            const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', options)
-
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`)
-            }
-
-            const data = await response.json()
-
-            if (data && data.choices && data.choices.length > 0 && data.choices[0].message) {
-                console.log("AI Response:", data.choices[0].message.content);
-                const aiResponse: Message = {
-                    role: 'assistant',
-                    content: data.choices[0].message.content,
-                    timestamp: Date.now()
-                }
-                setCurrentMessages(prev => [...prev, aiResponse])
-            } else {
-                throw new Error('Invalid API response format')
-            }
-        } catch (error) {
-            console.error('Error:', error)
-            const errorMessage: Message = {
-                role: 'assistant',
-                content: `Error: ${error.message}`,
-                timestamp: Date.now()
-            }
-            setCurrentMessages(prev => [...prev, errorMessage])
-        } finally {
-            setIsLoading(false)
-        }
+  // 获取占位符文本
+  const getPlaceholderText = () => {
+    if (useNoteContent) {
+      return language === 'zh' ? "添加额外提示（可选）..." : "Add extra prompts (optional)..."
+    } else {
+      return language === 'zh' ? "输入你的问题..." : "Type your question..."
     }
+  }
 
-    // Call AI when Enter key is pressed
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault()
-            callAI()
-        }
+  // 获取空聊天提示文本
+  const getEmptyChatText = () => {
+    return language === 'zh' 
+      ? "你好！有什么我可以帮助你的？"
+      : "Hello! How can I assist you today?"
+  }
+
+  // 获取按钮文本
+  const getButtonText = () => {
+    return {
+      useNoteContent: language === 'zh' ? "使用当前笔记内容提问" : "Use current note content",
+      insertToNote: language === 'zh' ? "插入到笔记" : "Insert to note",
+      retry: language === 'zh' ? "重试" : "Retry",
+      newChat: language === 'zh' ? "新对话" : "New Chat",
+      historyEmpty: language === 'zh' ? "没有历史对话" : "No history",
+      historyTitle: language === 'zh' ? "历史对话" : "History",
+      includeNoteContent: language === 'zh' ? "包含笔记内容" : "Including note content"
     }
+  }
 
-    // Insert to note
-    const handleInsert = (content: string) => {
-        // Convert content to formatted text
-        const formattedContent = content
-            .replace(/###\s+/g, '') // Remove the ### mark
-            .replace(/\*\*([^*]+)\*\*/g, '$1') // Keep bold text but remove the marker
-            .replace(/\[([^\]]+)\]:/g, '[$1]:') // Keep title format
-            .trim();
+  if (!isOpen) return null
 
-        // Use formatted content
-        onInsertContent(formattedContent);
-    }
+  const buttonText = getButtonText()
 
-    // Format date
-    const formatDate = (timestamp: number) => {
-        return new Date(timestamp).toLocaleString()
-    }
-
-    // Quick prompt options
-    const quickPrompts = [
-        "Organize my note structure",
-        "Create a study note template",
-        "How to organize project notes",
-        "Provide a meeting notes template"
-    ]
-
-    // Floating button (when closed)
-    if (!isOpen) {
-        return (
-            <button
-                onClick={() => setIsOpen(true)}
-                className="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg z-50"
+  return (
+    <div className={`ai-assistant-container ${showHistory ? 'with-history' : ''}`}>
+      {showHistory && (
+        <div className="history-sidebar">
+          <div className="history-sidebar-header">
+            <h3>{buttonText.historyTitle}</h3>
+            <button 
+              className="close-history-button" 
+              onClick={() => setShowHistory(false)}
+              aria-label="关闭历史"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
+              <X size={18} />
             </button>
-        )
-    }
-
-    // 安全的HTML内容处理函数
-    const safeHtml = (content: string) => {
-        if (!content) return '';
-
-        try {
-            // 基本HTML转义
-            const escapedContent = content
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-
-            // 应用格式化，但确保生成有效HTML
-            return escapedContent
-                .replace(/\[([^\]]+)\]:/g, '<strong class="text-blue-600">[$1]:</strong><br/>')
-                .replace(/•/g, '•')
-                .replace(/\n\s*-\s/g, '<br>&nbsp;&nbsp;- ')
-                .replace(/\n/g, '<br>')
-                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-                .replace(/😊|🙂|😀|👍|✅/g, match => match);
-        } catch (e) {
-            console.error('HTML formatting error:', e);
-            // 出错时返回纯文本
-            return content;
-        }
-    };
-
-    return (
-        <div className="fixed bottom-6 right-6 md:w-[800px] w-[95vw] max-w-[95vw] h-[600px] bg-white rounded-xl shadow-xl overflow-hidden z-50 flex">
-            {/* Left sidebar for conversation history */}
-            <div className={`${showSidebar ? 'w-64 border-r border-gray-200' : 'w-0'} transition-all duration-200 flex flex-col bg-gray-50 h-full overflow-hidden`}>
-                <div className="p-3 font-medium text-gray-700 border-b border-gray-200 bg-gray-100 flex justify-between items-center flex-shrink-0">
-                    <span>Conversation History</span>
-                    <button
-                        onClick={createNewConversation}
-                        className="text-blue-600 text-sm hover:text-blue-800"
-                    >
-                        New
-                    </button>
+          </div>
+          
+          <button className="new-chat-button" onClick={startNewChat}>
+            {buttonText.newChat}
+          </button>
+          
+          <div className="history-list">
+            {chatHistory.length === 0 ? (
+              <div className="empty-history">
+                <p>{buttonText.historyEmpty}</p>
+              </div>
+            ) : (
+              chatHistory.map((chat) => (
+                <div 
+                  key={chat.id} 
+                  className={`history-item ${activeChatId === chat.id ? 'active' : ''}`} 
+                  onClick={() => loadChat(chat.id)}
+                >
+                  <div className="history-item-content">
+                    <div className="history-note-title">{chat.title}</div>
+                    <div className="history-timestamp">{formatDate(chat.timestamp)}</div>
+                  </div>
+                  <button 
+                    className="delete-history-button" 
+                    onClick={(e) => deleteChat(chat.id, e)}
+                    aria-label="删除对话"
+                  >
+                    <Trash size={16} />
+                  </button>
                 </div>
-
-                <div className="flex-1 overflow-y-auto">
-                    {conversations.length === 0 ? (
-                        <div className="p-4 text-center text-gray-500">No conversation history</div>
-                    ) : (
-                        <ul className="divide-y divide-gray-200">
-                            {conversations.map(conv => (
-                                <li
-                                    key={conv.id}
-                                    onClick={() => loadConversation(conv.id)}
-                                    className={`p-3 hover:bg-gray-100 cursor-pointer flex justify-between ${conv.id === currentConversationId ? 'bg-blue-50' : ''
-                                        }`}
-                                >
-                                    <div className="flex-1 min-w-0">
-                                        <div className="font-medium text-gray-800 truncate">{conv.title}</div>
-                                        <div className="text-xs text-gray-500">{formatDate(conv.updatedAt)}</div>
-                                    </div>
-                                    <button
-                                        onClick={(e) => deleteConversation(conv.id, e)}
-                                        className="text-gray-400 hover:text-red-500 p-1 flex-shrink-0"
-                                        title="Delete conversation"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
-            </div>
-
-            {/* Right chat area */}
-            <div className="flex-1 flex flex-col h-full overflow-hidden">
-                {/* Title bar */}
-                <div className="bg-blue-600 text-white py-3 px-4 flex justify-between items-center flex-shrink-0">
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => setShowSidebar(!showSidebar)}
-                            className="p-2 hover:bg-blue-700 rounded-full"
-                            title={showSidebar ? "Hide History" : "Show History"}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-                            </svg>
-                        </button>
-                        <h3 className="font-bold text-xl">NoteFolio Assistant</h3>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={createNewConversation}
-                            className="p-2 hover:bg-blue-700 rounded-full"
-                            title="New Conversation"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                        </button>
-                        <button
-                            onClick={() => setIsOpen(false)}
-                            className="p-2 hover:bg-blue-700 rounded-full"
-                            title="Minimize"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Chat content area */}
-                <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-gray-50">
-                    {currentMessages.map((message, index) => (
-                        <div
-                            key={index}
-                            className={`${message.role === 'user'
-                                    ? 'bg-blue-100 text-blue-900 self-end'
-                                    : 'bg-white text-gray-800 self-start border border-gray-200'
-                                } max-w-[90%] p-4 rounded-lg whitespace-pre-wrap shadow-sm`}
-                        >
-                            {message.content ? (
-                                <div className="markdown-content" dangerouslySetInnerHTML={{
-                                    __html: safeHtml(message.content)
-                                }} />
-                            ) : (
-                                <div className="text-red-500">Content not available</div>
-                            )}
-
-                            <div className="mt-2 flex justify-between items-center">
-                                <div className="text-xs text-gray-400">
-                                    {formatDate(message.timestamp)}
-                                </div>
-
-                                {message.role === 'assistant' && message.content && (
-                                    <button
-                                        onClick={() => handleInsert(message.content)}
-                                        className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
-                                    >
-                                        Insert to note
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-
-                    {isLoading && (
-                        <div className="self-start bg-white p-4 rounded-lg flex items-center text-gray-500 border border-gray-200 shadow-sm">
-                            <div className="inline-block animate-bounce h-2 w-2 rounded-full bg-gray-500 mr-1"></div>
-                            <div className="inline-block animate-bounce h-2 w-2 rounded-full bg-gray-500 delay-75 mr-1"></div>
-                            <div className="inline-block animate-bounce h-2 w-2 rounded-full bg-gray-500 delay-150"></div>
-                        </div>
-                    )}
-
-                    <div ref={messagesEndRef} />
-                </div>
-
-                {/* Quick prompts */}
-                {currentMessages.length <= 1 && !isLoading && (
-                    <div className="px-4 py-3 bg-gray-100 grid grid-cols-2 gap-2 flex-shrink-0">
-                        {quickPrompts.map((promptText, index) => (
-                            <button
-                                key={index}
-                                onClick={() => {
-                                    setPrompt(promptText)
-                                    setTimeout(() => callAI(), 100)
-                                }}
-                                className="text-left p-2 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
-                            >
-                                {promptText}
-                            </button>
-                        ))}
-                    </div>
-                )}
-
-                {/* Input area */}
-                <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0">
-                    <div className="flex gap-2">
-                        <textarea
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                            onKeyDown={handleKeyPress}
-                            placeholder="Ask how to organize your notes..."
-                            className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-300 resize-none"
-                            rows={2}
-                        />
-                        <button
-                            onClick={callAI}
-                            disabled={isLoading || !prompt.trim()}
-                            className={`p-3 rounded-lg ${isLoading || !prompt.trim()
-                                    ? "bg-gray-300 text-gray-500"
-                                    : "bg-blue-600 text-white hover:bg-blue-700"
-                                }`}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
+              ))
+            )}
+          </div>
         </div>
-    )
-} 
+      )}
+      
+      <div className="ai-assistant-main">
+        <div className="ai-assistant-header">
+          <div className="ai-assistant-title">
+            <span>AI 助手</span>
+            <div className="service-status">QwQ-32B</div>
+          </div>
+          
+          <div className="header-actions">
+            <button 
+              type="button" 
+              className="new-chat-header-button"
+              onClick={startNewChat}
+              aria-label="新对话"
+              title="开始新对话"
+            >
+              <PlusCircle size={16} />
+            </button>
+            <button 
+              type="button" 
+              className="language-button"
+              onClick={toggleLanguage}
+              aria-label="切换语言"
+            >
+              <Languages size={16} />
+              <span>{getLanguageText()}</span>
+            </button>
+            <button 
+              className="history-button" 
+              onClick={() => setShowHistory(!showHistory)}
+              aria-label="查看历史"
+            >
+              <History size={18} />
+            </button>
+            <button 
+              className="close-button" 
+              onClick={onClose}
+              aria-label="关闭助手"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+        
+        <div className="ai-assistant-content">
+          <div className="messages-container">
+            {messages.length === 0 ? (
+              <div className="empty-chat">
+                <p>{getEmptyChatText()}</p>
+                {activeNote && activeNote.content && (
+                  <button 
+                    className="note-content-button" 
+                    onClick={useCurrentNoteContent}
+                  >
+                    <ArrowDown size={14} /> {buttonText.useNoteContent}
+                  </button>
+                )}
+              </div>
+            ) : (
+              messages.map((message, index) => {
+                // 处理内容，替换换行符以外的空白
+                const processedContent = message.content
+                  .replace(/^\s+|\s+$/g, '') // 移除开头和结尾的空白
+                  .replace(/\n+/g, '\n'); // 合并多个换行符
+                
+                return (
+                  <div key={index} className={`message ${message.role}`}>
+                    <div className="message-metadata">
+                      <span className="message-time">{formatTimestamp(message.timestamp)}</span>
+                    </div>
+                    <div className="message-content">
+                      {processedContent}
+                    </div>
+                    {message.role === 'assistant' && (
+                      <div className="message-actions">
+                        <button 
+                          className="action-button" 
+                          onClick={() => insertToNote(message.content)}
+                          title={language === 'zh' ? "插入到笔记" : "Insert to note"}
+                        >
+                          <Copy size={14} /> {buttonText.insertToNote}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+            
+            {error && (
+              <div className="error-message">
+                <p>{error}</p>
+                <button onClick={() => handleSubmit()} className="apply-button">
+                  <RotateCcw size={14} /> {buttonText.retry}
+                </button>
+              </div>
+            )}
+            
+            {isLoading && (
+              <div className="message assistant">
+                <div className="message-metadata">
+                  <span className="message-time">{formatTimestamp(Date.now())}</span>
+                </div>
+                <div className="message-content">
+                  <div className="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
+        
+        <form className="ai-assistant-input" onSubmit={handleSubmit}>
+          {useNoteContent && (
+            <div className="note-content-badge">
+              {buttonText.includeNoteContent} <button onClick={() => setUseNoteContent(false)}>×</button>
+            </div>
+          )}
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={getPlaceholderText()}
+            rows={1}
+            disabled={isLoading}
+          />
+          <button 
+            type="submit" 
+            className={`send-button ${isLoading ? 'loading' : ''}`}
+            disabled={isLoading || (!input.trim() && !useNoteContent)}
+            aria-label="发送消息"
+          >
+            <Send size={18} />
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
