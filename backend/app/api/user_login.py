@@ -27,8 +27,6 @@ async def login_user(user:UserLogin):
         access_token=create_access_token(data={"sub":user_id})
         refresh_token=create_refresh_token(data={"sub":user_id})
 
-        print(f"Access token: {access_token}")
-        print(f"Refresh token: {refresh_token}")
         return{
             "user_email":find_user["email"],
             "name":find_user["name"],
@@ -41,3 +39,15 @@ async def login_user(user:UserLogin):
             'error':e.message,
             'error_message':"Wasn't able to create user"
         }
+
+@router.post("/sign-out")
+async def sign_out(response:Response,request:Request):
+    try:
+        response.delete_cookie(key="access_token")
+        response.delete_cookie(key="refresh_token") #remove the access token and refresh token from the cookies
+
+        return{
+            "message":"Successfully signed out"
+        }
+    except HTTPException as e:
+        raise HTTPException(status_code=500, detail="An error occurred during sign-out")
