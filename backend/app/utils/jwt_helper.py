@@ -1,9 +1,11 @@
 from datetime import datetime, timedelta,timezone
 from dotenv import load_dotenv
-from fastapi import HTTPException,Request,Optional
+from fastapi import HTTPException,Request
+from typing import Optional
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 import os
+
 load_dotenv()
 
 def create_access_token(data:dict, expires_delta:timedelta | None=None):
@@ -12,17 +14,18 @@ def create_access_token(data:dict, expires_delta:timedelta | None=None):
     if expires_delta:
         expire = datetime + expires_delta
     else:
-        expire = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=access_token_min)
+        expire = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=int(access_token_min))
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, "secret", algorithm=os.getenv("JWT_ALGORITHM"))
     return encoded_jwt
 
-async def create_refresh_token(data:dict, expires_delta:timedelta | None=None):
+def create_refresh_token(data:dict, expires_delta:timedelta | None=None):
     to_encode = data.copy()
+    refresh_token=os.getenv("REFRESH_TOKEN_EXPIRE_MINUTES")
     if expires_delta:
         expire=datetime+expires_delta
     else:
-        expire=datetime.now(timezone.utc).replace(tzinfo=None)+timedelta(days=7)
+        expire=datetime.now(timezone.utc).replace(tzinfo=None)+timedelta(minutes=eval(refresh_token))
     to_encode.update({"exp":expire})
     encoded_jwt=jwt.encode(to_encode,"secret",algorithm=os.getenv("JWT_ALGORITHM"))
     return encoded_jwt
@@ -40,7 +43,7 @@ class JWTBearer(HTTPBearer):
         super(JWTBearer, self).__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request) -> Optional[str]:
-        credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
+        credentials: HTTPAuthorizationCredentials =  super(JWTBearer, self).__call__(request) #Had await in front of super before
         if credentials:
             if not credentials.scheme == "Bearer":
                 raise HTTPException(status_code=403, detail="Invalid authentication scheme.")

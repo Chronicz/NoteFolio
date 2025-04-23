@@ -5,18 +5,13 @@ from schema.users_schema import Users,UpdateUser
 from pymongo import MongoClient
 from db.mongo_db import db
 from bson import ObjectId
-import bcrypt
-router=APIRouter()
 
+router=APIRouter()
 database=db["Notefolio"]
 
 def serialize_user(user):
     user["_id"] = str(user["_id"])
     return user
-
-@router.get('/hello')
-async def example():
-    return "Hello World"
 
 @router.post('/user-register',response_model=None)
 async def create_user(user:Users):
@@ -36,9 +31,9 @@ async def create_user(user:Users):
         result=database.insert_one(new_user.to_dict())
 
         return {
-            "message":"User successfully registered",
-            "user_name":result["name"],
-            "user_email":result["email"]
+            "message":f"User successfully registered{result}",
+            "user_name":new_user["name"],
+            "user_email":new_user["email"]
         }
     
     except HTTPException as e:
