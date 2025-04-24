@@ -308,3 +308,10 @@ body {
 .search-option input {
     cursor: pointer;
 }
+
+.no-results {
+    padding: 16px;
+    text-align: center;
+    color: #718096;
+    font-size: 14px;
+}
