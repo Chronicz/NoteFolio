@@ -127,7 +127,7 @@ export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
       const apiKey = process.env.NEXT_PUBLIC_AI_API_KEY
       
       if (!apiKey) {
-        throw new Error('API密钥未设置。请检查.env.local文件。')
+        throw new Error('API key is not set.')
       }
       
       // 根据当前选择的语言添加系统消息
@@ -381,7 +381,7 @@ export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
       <div className="ai-assistant-main">
         <div className="ai-assistant-header">
           <div className="ai-assistant-title">
-            <span>AI 助手</span>
+            <span>AI assistant</span>
             <div className="service-status">QwQ-32B</div>
           </div>
           
@@ -497,28 +497,32 @@ export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
         <form className="ai-assistant-input" onSubmit={handleSubmit}>
           {useNoteContent && (
             <div className="note-content-badge">
-              {buttonText.includeNoteContent} <button onClick={() => setUseNoteContent(false)}>×</button>
+              <span>{buttonText.includeNoteContent}</span> 
+              <button onClick={() => setUseNoteContent(false)} aria-label={language === 'zh' ? "移除笔记内容" : "Remove note content"}>×</button>
             </div>
           )}
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={getPlaceholderText()}
-            rows={1}
-            disabled={isLoading}
-          />
-          <button 
-            type="submit" 
-            className={`send-button ${isLoading ? 'loading' : ''}`}
-            disabled={isLoading || (!input.trim() && !useNoteContent)}
-            aria-label="发送消息"
-          >
-            <Send size={18} />
-          </button>
+          <div className="input-container">
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={getPlaceholderText()}
+              rows={1}
+              disabled={isLoading}
+            />
+            <button 
+              type="submit" 
+              className={`send-button ${isLoading ? 'loading' : ''}`}
+              disabled={isLoading || (!input.trim() && !useNoteContent)}
+              aria-label={language === 'zh' ? "发送消息" : "Send message"}
+            >
+              <Send size={18} />
+            </button>
+          </div>
         </form>
       </div>
     </div>
   )
 }
+
