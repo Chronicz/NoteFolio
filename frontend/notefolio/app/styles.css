@@ -840,16 +840,22 @@ body {
 
 .ai-assistant-input {
     display: flex;
+    flex-direction: column;
     border-top: 1px solid #f0f0f0;
     padding: 12px 16px;
     background-color: white;
     flex-shrink: 0;
     gap: 8px;
-    position: relative;
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
+    width: 100%;
+}
+
+.input-container {
+    display: flex;
+    position: relative;
     width: 100%;
 }
 
@@ -864,6 +870,7 @@ body {
     min-height: 44px;
     max-height: 120px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    width: 100%;
 }
 
 .ai-assistant-input textarea:focus {
@@ -871,22 +878,29 @@ body {
 }
 
 .send-button {
-    background-color: #4299e1;
-    color: white;
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
     border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    color: #4299e1;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    flex-shrink: 0;
-    position: absolute;
-    right: 18px;
-    bottom: 14px;
-    padding: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+}
+
+.send-button:hover {
+    background-color: #ebf8ff;
+}
+
+.send-button:disabled {
+    color: #cbd5e0;
+    cursor: not-allowed;
 }
 
 .send-button.loading {
@@ -898,15 +912,6 @@ body {
     0% { opacity: 1; }
     50% { opacity: 0.7; }
     100% { opacity: 1; }
-}
-
-.send-button:hover {
-    background-color: #3182ce;
-}
-
-.send-button:disabled {
-    background-color: #cbd5e0;
-    cursor: not-allowed;
 }
 
 .language-button {
@@ -1005,7 +1010,7 @@ body {
     border: 1px solid #bee3f8;
 }
 
-/* 添加新的样式来支持笔记内容集成功能 */
+/* 笔记内容按钮 */
 .note-content-button {
     display: flex;
     align-items: center;
@@ -1037,10 +1042,11 @@ body {
     background-color: #f0f9ff;
     border: 1px solid #bae6fd;
     color: #0369a1;
-    border-radius: 4px 4px 0 0;
+    border-radius: 4px;
     padding: 4px 8px;
     font-size: 12px;
     width: 100%;
+    margin-bottom: 8px;
 }
 
 .note-content-badge button {
