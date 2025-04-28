@@ -99,7 +99,7 @@ async def delete_user(id:str):
     } 
 
 @router.patch("/update-user-info/{id}")
-async def update_user(id:int,user_update:UpdateUser):
+async def update_user(id:str,user_update:UpdateUser):
     user_id=ObjectId(id)
     find_user_to_update=database.find_one({"_id":user_id})
 

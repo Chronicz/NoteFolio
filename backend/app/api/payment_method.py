@@ -70,22 +70,23 @@ async def update_payment_method(user_id: str, payment_method: Payment_Methods_Up
         # Convert user_id to ObjectId
         user_object_id = ObjectId(user_id)
         if(not user_object_id):
+            print("No user object id")
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user_exists = database.find_one({"user": user_object_id})
+        if not user_exists:
             raise HTTPException(status_code=404, detail="User not found")
         
         # Update the payment method for the given user
+        update_data = {key: value for key, value in payment_method.dict().items() if value is not None}
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No fields to update")
+        
         result = database.update_one(
             {"user": user_object_id},
-            {
-                "$set": {
-                    "payment_card": payment_method.payment_card,
-                    "card_user": payment_method.card_user,
-                    "zip_code": payment_method.zip_code,
-                    "ccv": payment_method.ccv,
-                    "payment_type": payment_method.payment_type,
-                    "expiration_date": payment_method.expiration_date
-                }
-            }
+            {"$set": update_data}
         )
+        print(result)
         
         if result.modified_count == 0:
             raise HTTPException(status_code=404, detail="Payment method not found or no changes made")
