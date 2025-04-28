@@ -48,13 +48,13 @@ class Payment_Methods(BaseModel):
 
 
 class Payment_Methods_Update(BaseModel):
-    id: Optional[ObjectId] = Field(default=None, alias="_id")  # MongoDB _id field
-    payment_card: str = Field(..., regex=r"^\d{16}$")
-    card_user: str = Field(..., regex=r"^[A-Za-z\s]+$")
-    zip_code: str = Field(..., regex=r"^[1-9]\d{4}$")
-    ccv: str = Field(..., regex=r"^\d{3,4}$")
-    payment_type: PaymentType
-    expiration_date: str  # MM/YY or MM/YYYY format
+    id: Optional[ObjectId] = None  # MongoDB _id field
+    payment_card: Optional[str] = None
+    card_user: Optional[str] = None
+    zip_code: Optional[str] =None
+    ccv: Optional[str] = None
+    payment_type: Optional[PaymentType]=None
+    expiration_date: Optional[str]=None  # MM/YY or MM/YYYY format
 
     # Validator for expiration date
     @validator('expiration_date')
