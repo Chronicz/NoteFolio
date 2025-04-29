@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-
+import{useRouter} from "next/navigation"
 import { useState, useRef, useEffect } from "react"
-import { ImageIcon, FileText, AlignLeft, List, ListOrdered, Menu, Bold, Italic, Underline } from "lucide-react"
+import { ImageIcon, FileText, AlignLeft, List, ListOrdered, Menu, Bold, Italic, Underline,Crown } from "lucide-react"
 import { useNotes } from "./note-context"
 
 export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => void }) {
@@ -17,6 +17,7 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
 
   const contentEditableRef = useRef<HTMLDivElement>(null)
   const titleInputRef = useRef<HTMLInputElement>(null)
+  const router=useRouter()
 
   // Sync the content state with the contentEditable element when active note changes
   useEffect(() => {
@@ -94,6 +95,11 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
           <Menu size={18} />
         </button>
         <span className="app-title">NoteFolio</span>
+
+        <button className="ml-auto flex items-center gap-2 bg-yellow-200 text-orange-700 border-none rounded-md px-3 py-2 font-medium text-sm cursor-pointer transition-all duration-200 ease-in-out hover:bg-yellow-200" aria-label="Upgrade to premium" onClick={()=> router.push("/payment-folder")}>
+          <Crown size={18} />
+          <span className="premium-text">Upgrade</span>
+        </button>
       </div>
 
       {isEditingTitle ? (
