@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar" 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"  
+import { DayPicker, DateRange, DayPickerProps, Modifiers, CalendarDay } from "react-day-picker";
+
 
 // Enum for payment types
 const PaymentTypeEnum = {
@@ -327,18 +329,45 @@ export default function PaymentMethodComponent() {
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                          mode="single"
-                          selected={field.value as Date | undefined}
-                          onSelect={(date: Date | undefined) => {
-                            field.onChange(date)
-                            setFocusedField(null)
-                          }}
-                          disabled={(date: Date) => date < new Date()}
-                          initialFocus
-                          />
-                        </PopoverContent>
+                        <PopoverContent className="w-auto p-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+
+                    <Calendar
+                      mode="single"
+                      selected={field.value as Date | undefined}
+                      onSelect={(date: Date | undefined) => {
+                        field.onChange(date);
+                        setFocusedField(null);
+                      }}
+                      disabled={(date: Date) => date < new Date()}
+                      initialFocus
+                      className="p-4"
+                      components={{
+                        Day: ({
+                          day,
+                          modifiers,
+                          onClick,
+                          ...props
+                        }: {
+                          day: CalendarDay;
+                          modifiers: Modifiers;
+                        } & React.HTMLAttributes<HTMLDivElement>) => (
+                          <div
+                            onClick={onClick}
+                            {...props}
+                            className={cn(
+                              "w-10 h-10 flex items-center justify-center rounded-lg",
+                              modifiers.selected && "bg-violet-500 text-white",
+                              modifiers.disabled && "text-gray-400 cursor-not-allowed",
+                              !modifiers.selected && !modifiers.disabled && "hover:bg-gray-100"
+                            )}
+                          >
+                            {day.date.getDate()}
+                          </div>
+                        ),
+                      }}
+                    />
+                      </PopoverContent>
+
                       </Popover>
                       <FormMessage className="text-red-500" />
                     </FormItem>
@@ -420,7 +449,7 @@ export default function PaymentMethodComponent() {
                             <SelectValue placeholder="Select type" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className="bg-white border border-gray-200 rounded-lg shadow-lg">
                           <SelectItem value={PaymentTypeEnum.CREDIT}>Credit</SelectItem>
                           <SelectItem value={PaymentTypeEnum.DEBIT}>Debit</SelectItem>
                           <SelectItem value={PaymentTypeEnum.PREPAID}>Prepaid</SelectItem>
