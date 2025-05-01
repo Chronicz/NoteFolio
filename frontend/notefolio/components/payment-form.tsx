@@ -13,7 +13,8 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar" 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"  
-import { DayPicker, DateRange, DayPickerProps, Modifiers, CalendarDay } from "react-day-picker";
+import { DayPicker, DateRange, DayPickerProps, Modifiers, CalendarDay} from "react-day-picker";
+import { Day,Weekday } from "react-day-picker"
 
 
 // Enum for payment types
@@ -304,95 +305,62 @@ export default function PaymentMethodComponent() {
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField
+                  
                   control={form.control}
-                  name="expiration_date"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel className="text-gray-700">Expiration Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "py-6 rounded-xl border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 transition-all pl-4 text-left font-normal",
-                                !field.value && "text-muted-foreground",
-                              )}
-                              onFocus={() => {
-                                setFocusedField("expiration_date")
-                                setIsFlipped(false)
-                              }}
-                              onBlur={() => setFocusedField(null)}
-                            >
-                              {field.value ? format(field.value, "MM/yyyy") : <span>MM/YYYY</span>}
-                              <CalendarIcon className="ml-auto h-5 w-5 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-
-                    <Calendar
-                      mode="single"
-                      selected={field.value as Date | undefined}
-                      onSelect={(date: Date | undefined) => {
-                        field.onChange(date);
-                        setFocusedField(null);
-                      }}
-                      disabled={(date: Date) => date < new Date()}
-                      initialFocus
-                      className="p-4"
-                      components={{
-                        Day: ({
-                          day,
-                          modifiers,
-                          onClick,
-                          ...props
-                        }: {
-                          day: CalendarDay;
-                          modifiers: Modifiers;
-                        } & React.HTMLAttributes<HTMLDivElement>) => (
-                          <div
-                            onClick={onClick}
-                            {...props}
-                            className={cn(
-                              "w-10 h-10 flex items-center justify-center rounded-lg",
-                              modifiers.selected && "bg-violet-500 text-white",
-                              modifiers.disabled && "text-gray-400 cursor-not-allowed",
-                              !modifiers.selected && !modifiers.disabled && "hover:bg-gray-100"
-                            )}
-                          >
-                            {day.date.getDate()}
-                          </div>
-                        ),
-                      }}
-                    />
-                      </PopoverContent>
-
-                      </Popover>
-                      <FormMessage className="text-red-500" />
-                    </FormItem>
-                  )}
+  name="expiration_date"
+  render={({ field }) => (
+    <FormItem className="flex flex-col">
+      <FormLabel className="text-gray-700">Expiration Date</FormLabel>
+      <FormControl>
+        <Input
+          type="date"
+          className="py-6 rounded-xl border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 transition-all pl-4 text-left font-normal"
+          value={field.value ? format(field.value, "yyyy-MM-dd") : ""}
+          onChange={(e) => field.onChange(new Date(e.target.value))}
+          onFocus={() => {
+            setFocusedField("expiration_date");
+            setIsFlipped(false);
+          }}
+          onBlur={() => setFocusedField(null)}
+        />
+      </FormControl>
+      <FormMessage className="text-red-500" />
+    </FormItem>
+  )}
                 />
 
                 <FormField
                   control={form.control}
-                  name="ccv"
+                  name="payment_type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-700">CCV</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="123"
-                          className="py-6 rounded-xl border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 transition-all"
-                          {...field}
-                          maxLength={4}
-                          onFocus={() => {
-                            setFocusedField("ccv")
-                            setIsFlipped(true)
-                          }}
-                          onBlur={() => setFocusedField(null)}
-                        />
-                      </FormControl>
+                      <FormLabel className="text-gray-700">Payment Type</FormLabel>
+                      <Select
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          setFocusedField(null);
+                        }}
+                        defaultValue={field.value}
+                        onOpenChange={(open) => {
+                          if (open) {
+                            setFocusedField("payment_type");
+                            setIsFlipped(false);
+                          } else {
+                            setFocusedField(null);
+                          }
+                        }}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="py-6 rounded-xl border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 transition-all">
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="bg-white border border-gray-200 rounded-lg shadow-lg">
+                          <SelectItem value={PaymentTypeEnum.CREDIT}>Credit</SelectItem>
+                          <SelectItem value={PaymentTypeEnum.DEBIT}>Debit</SelectItem>
+                          <SelectItem value={PaymentTypeEnum.PREPAID}>Prepaid</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage className="text-red-500" />
                     </FormItem>
                   )}
