@@ -109,10 +109,26 @@ export default function PaymentMethodComponent() {
     }
   }, [watchCardNumber])
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values)
-    // Here you would typically send the data to your backend
-    alert("Payment method saved successfully!")
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try{
+      const response=await fetch("http://localhost:3000/create-payment-method/:id",{
+        method:"POST", // When we create the user login route I'm going to fix this to make it interactive and allow users to input their payment routes
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      })
+      if(!response.ok){
+        throw new Error("Failed to create payment method")
+      }
+      const result=await response.json()
+
+      console.log(`Results:${result}`)
+      return result
+    }catch(error){
+        console.log(`Error submitting payment:${error}`)
+    }
+   
   }
 
   // Format card number with spaces for readability
