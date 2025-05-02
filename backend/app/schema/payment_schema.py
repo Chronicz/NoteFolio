@@ -6,11 +6,9 @@ from enum import Enum
 import datetime
 
 class PaymentType(str, Enum):
-    visa = "Visa"
-    mastercard = "MasterCard"
-    amex = "Amex"
-    discover = "Discover"
-    other="Other"
+    credit='Credit'
+    debit='Debit'
+    other='Other'
     # Add other payment types as needed
 
 class Payment_Methods(BaseModel):
