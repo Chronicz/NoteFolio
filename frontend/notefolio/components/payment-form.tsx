@@ -21,7 +21,7 @@ import { Day,Weekday } from "react-day-picker"
 const PaymentTypeEnum = {
   CREDIT: "credit",
   DEBIT: "debit",
-  PREPAID: "prepaid",
+  OTHER: "other",
 } as const
 
 // Form validation schema
@@ -48,7 +48,7 @@ const formSchema = z.object({
     .max(4, {
       message: "CCV must not exceed 4 digits",
     }),
-  payment_type: z.enum([PaymentTypeEnum.CREDIT, PaymentTypeEnum.DEBIT, PaymentTypeEnum.PREPAID], {
+  payment_type: z.enum([PaymentTypeEnum.CREDIT, PaymentTypeEnum.DEBIT, PaymentTypeEnum.OTHER], {
     required_error: "Please select a payment type",
   }),
   expiration_date: z
@@ -358,7 +358,7 @@ export default function PaymentMethodComponent() {
                         <SelectContent className="bg-white border border-gray-200 rounded-lg shadow-lg">
                           <SelectItem value={PaymentTypeEnum.CREDIT}>Credit</SelectItem>
                           <SelectItem value={PaymentTypeEnum.DEBIT}>Debit</SelectItem>
-                          <SelectItem value={PaymentTypeEnum.PREPAID}>Prepaid</SelectItem>
+                          <SelectItem value={PaymentTypeEnum.OTHER}>Other</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage className="text-red-500" />
@@ -391,42 +391,7 @@ export default function PaymentMethodComponent() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="payment_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700">Payment Type</FormLabel>
-                      <Select
-                        onValueChange={(value) => {
-                          field.onChange(value)
-                          setFocusedField(null)
-                        }}
-                        defaultValue={field.value}
-                        onOpenChange={(open) => {
-                          if (open) {
-                            setFocusedField("payment_type")
-                            setIsFlipped(false)
-                          } else {
-                            setFocusedField(null)
-                          }
-                        }}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="py-6 rounded-xl border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 transition-all">
-                            <SelectValue placeholder="Select type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="bg-white border border-gray-200 rounded-lg shadow-lg">
-                          <SelectItem value={PaymentTypeEnum.CREDIT}>Credit</SelectItem>
-                          <SelectItem value={PaymentTypeEnum.DEBIT}>Debit</SelectItem>
-                          <SelectItem value={PaymentTypeEnum.PREPAID}>Prepaid</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage className="text-red-500" />
-                    </FormItem>
-                  )}
-                />
+                
               </div>
 
               <Button
