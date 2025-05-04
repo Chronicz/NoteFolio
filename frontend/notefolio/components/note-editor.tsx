@@ -1,10 +1,11 @@
 "use client"
 
 import type React from "react"
-import{useRouter} from "next/navigation"
+
 import { useState, useRef, useEffect } from "react"
-import { ImageIcon, FileText, AlignLeft, List, ListOrdered, Menu, Bold, Italic, Underline,Crown } from "lucide-react"
+import { ImageIcon, FileText, AlignLeft, List, ListOrdered, Menu, Bold, Italic, Underline, BotIcon } from "lucide-react"
 import { useNotes } from "./note-context"
+import AiAssistant from "./ai-assistant"
 
 export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => void }) {
   const { notes, activeNoteId, updateNote } = useNotes()
@@ -14,10 +15,10 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
   const [charCount, setCharCount] = useState(0)
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [titleValue, setTitleValue] = useState(activeNote?.title || "")
+  const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false)
 
   const contentEditableRef = useRef<HTMLDivElement>(null)
   const titleInputRef = useRef<HTMLInputElement>(null)
-  const router=useRouter()
 
   // Sync the content state with the contentEditable element when active note changes
   useEffect(() => {
@@ -88,6 +89,10 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
     contentEditableRef.current?.focus()
   }
 
+  const toggleAiAssistant = () => {
+    setIsAiAssistantOpen(!isAiAssistantOpen)
+  }
+
   return (
     <div className="editor-container">
       <div className="app-header">
@@ -95,11 +100,6 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
           <Menu size={18} />
         </button>
         <span className="app-title">NoteFolio</span>
-
-        <button className="ml-auto flex items-center gap-2 bg-yellow-200 text-orange-700 border-none rounded-md px-3 py-2 font-medium text-sm cursor-pointer transition-all duration-200 ease-in-out hover:bg-yellow-200" aria-label="Upgrade to premium" onClick={()=> router.push("/payment-folder")}>
-          <Crown size={18} />
-          <span className="premium-text">Upgrade</span>
-        </button>
       </div>
 
       {isEditingTitle ? (
@@ -153,6 +153,9 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
         <button className="toolbar-button" aria-label="Numbered list" onClick={() => formatText("insertOrderedList")}>
           <ListOrdered size={20} />
         </button>
+        <button className="toolbar-button" aria-label="AI Assistant" onClick={toggleAiAssistant}>
+          <BotIcon size={20} />
+        </button>
       </div>
 
       <div className="editor-content">
@@ -170,6 +173,8 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
           {wordCount} {wordCount === 1 ? "word" : "words"} | {charCount} {charCount === 1 ? "character" : "characters"}
         </div>
       </div>
+
+      <AiAssistant isOpen={isAiAssistantOpen} onClose={() => setIsAiAssistantOpen(false)} />
     </div>
   )
 }
