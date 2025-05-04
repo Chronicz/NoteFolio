@@ -172,7 +172,7 @@ export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
       const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', options)
       
       if (!response.ok) {
-        throw new Error(`API请求失败: ${response.status}`)
+        throw new Error(`API request failed: ${response.status}`)
       }
       
       const data: AIResponse = await response.json()
