@@ -1,8 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Request, Response,status
 from schema.users_schema import UpdateUser,UserLogin
 from utils.password_helper import hash_password,verify_password
-from schema.users_schema import Users,UpdateUser
-from passlib.context import CryptContext
 from pymongo import MongoClient
 from db.mongo_db import db
 from utils.jwt_helper import create_access_token,create_refresh_token
