@@ -3,15 +3,18 @@ from bson import ObjectId
 from typing import Optional,List
 import datetime
 
-class User_Input(BaseModel):
-    id: Optional[ObjectId] = Field(default=None, alias="_id")  # MongoDB _id field
-    posted_date=datetime.datetime
-    title:str
-    content:str
-    tags:List[str]
-    class Config:
-        # Ensures that the id is treated as a string when serialized
-        json_encoders = {
-            ObjectId: str
-        }
+class User_Inputs(BaseModel):
+    title: str
+    content: str
+    tags: List[str] = []
+    postedDate: Optional[datetime] = Field(default_factory=datetime.utcnow)
 
+    class Config:
+        orm_mode = True
+
+
+class User_Input_Update(BaseModel):
+    title: Optional[str]
+    content: Optional[str]
+    tags: Optional[List[str]]
+    postedDate: Optional[datetime]

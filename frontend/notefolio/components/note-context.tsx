@@ -90,7 +90,7 @@ export function NoteProvider({ children }: { children: ReactNode }) {
   const [searchTerm, setSearchTerm] = useState("")
   const [searchBy, setSearchBy] = useState<"title" | "tags" | "all">("all")
 
-  const addNote = (folderId: string | null = activeFolderId) => {
+  const addNote = async (folderId: string | null = activeFolderId) => {
     const newNote = {
       id: Date.now().toString(),
       title: "Untitled Note",
@@ -100,8 +100,30 @@ export function NoteProvider({ children }: { children: ReactNode }) {
       tags: [],
       folderId: folderId,
     }
-    setNotes([...notes, newNote])
-    setActiveNoteId(newNote.id)
+      // Optional: Call your FastAPI backend
+  try {
+    const response = await fetch("http://localhost:8000/notes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: newNote.title,
+        content: newNote.content,
+        tags: newNote.tags,
+        postedDate: new Date().toISOString(), // or your format
+      }),
+    });
+
+    const data = await response.json();
+    console.log("Note saved:", data);
+  } catch (err) {
+    console.error("Failed to save note:", err);
+  }
+
+  // Update local state
+  const id = Date.now().toString();
+  setNotes([...notes, { ...newNote, id }]);
+  setActiveNoteId(id);
+
   }
 
   const deleteNote = (id: string) => {
