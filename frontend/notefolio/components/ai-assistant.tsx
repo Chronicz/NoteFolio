@@ -62,7 +62,7 @@ export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([])
   const [activeChatId, setActiveChatId] = useState<string | null>(null)
   const [useNoteContent, setUseNoteContent] = useState(false)
-  const [language, setLanguage] = useState<'zh' | 'en'>('zh')
+  const [language, setLanguage] = useState<'zh' | 'en'>('en')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -108,7 +108,7 @@ export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
     if (!input.trim() && !useNoteContent) return
     
     const userContent = useNoteContent 
-      ? `${input.trim() ? input + "\n\n" : ""}笔记内容：\n${activeNote.content}`
+      ? `${input.trim() ? input + "\n\n" : ""}Note content：\n${activeNote.content}`
       : input
 
     const userMessage: Message = {
@@ -127,7 +127,7 @@ export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
       const apiKey = process.env.NEXT_PUBLIC_AI_API_KEY
       
       if (!apiKey) {
-        throw new Error('API密钥未设置。请检查.env.local文件。')
+        throw new Error('API key is not set.')
       }
       
       // 根据当前选择的语言添加系统消息
@@ -263,20 +263,120 @@ export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
   }
 
   // 将AI助手的回答插入笔记
-  const insertToNote = (content: string) => {
+  const insertToNote = (content: string, withFormatting: boolean = false) => {
     if (activeNote) {
+      // 处理markdown格式
+      let processedContent = content
+        // 处理标题
+        .replace(/^### (.*?)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.*?)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.*?)$/gm, '<h1>$1</h1>')
+        // 处理分隔线
+        .replace(/^---+$/gm, '<hr>')
+        .replace(/^===+$/gm, '<hr>')
+        .replace(/^\*\*\*+$/gm, '<hr>')
+        // 处理引用
+        .replace(/^> (.*?)$/gm, '<blockquote>$1</blockquote>')
+        // 处理基本文本格式
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // 处理加粗
+        .replace(/\*(.*?)\*/g, '<em>$1</em>') // 处理斜体
+        .replace(/__(.*?)__/g, '<strong>$1</strong>') // 处理下划线加粗
+        .replace(/_(.*?)_/g, '<em>$1</em>') // 处理下划线斜体
+        .replace(/~~(.*?)~~/g, '<del>$1</del>') // 处理删除线
+        .replace(/`(.*?)`/g, '<code>$1</code>') // 处理行内代码
+        // 处理特殊格式标记
+        .replace(/###+ (.*?)$/gm, '<h3>$1</h3>') // 处理更多#标记形式
+        .replace(/^(\d+)\. /gm, '<span class="list-number">$1.</span> ') // 处理编号
+        .replace(/^- /gm, '<span class="list-bullet">•</span> ') // 处理无序列表标记
+        .replace(/\n/g, '<br>'); // 处理换行
+      
+      // 处理列表
+      // 处理无序列表
+      if (processedContent.includes('<span class="list-bullet">•</span>')) {
+        const listItems = processedContent.split('<br>');
+        const processedItems = [];
+        let inList = false;
+        
+        for (const item of listItems) {
+          if (item.includes('<span class="list-bullet">•</span>')) {
+            if (!inList) {
+              processedItems.push('<ul>');
+              inList = true;
+            }
+            const cleanItem = item.replace('<span class="list-bullet">•</span> ', '');
+            processedItems.push(`<li>${cleanItem}</li>`);
+          } else {
+            if (inList) {
+              processedItems.push('</ul>');
+              inList = false;
+            }
+            processedItems.push(item);
+          }
+        }
+        
+        if (inList) {
+          processedItems.push('</ul>');
+        }
+        
+        processedContent = processedItems.join('<br>');
+        processedContent = processedContent.replace(/<br><\/ul><br><ul><br>/g, '<br>');
+        processedContent = processedContent.replace(/<br><\/ul><br><ul>/g, '<br>');
+        processedContent = processedContent.replace(/<\/ul><br><ul>/g, '');
+      }
+      
+      // 处理有序列表
+      if (processedContent.includes('<span class="list-number">')) {
+        const listItems = processedContent.split('<br>');
+        const processedItems = [];
+        let inList = false;
+        
+        for (const item of listItems) {
+          if (item.includes('<span class="list-number">')) {
+            if (!inList) {
+              processedItems.push('<ol>');
+              inList = true;
+            }
+            const cleanItem = item.replace(/<span class="list-number">\d+\.<\/span> /, '');
+            processedItems.push(`<li>${cleanItem}</li>`);
+          } else {
+            if (inList) {
+              processedItems.push('</ol>');
+              inList = false;
+            }
+            processedItems.push(item);
+          }
+        }
+        
+        if (inList) {
+          processedItems.push('</ol>');
+        }
+        
+        processedContent = processedItems.join('<br>');
+        processedContent = processedContent.replace(/<br><\/ol><br><ol><br>/g, '<br>');
+        processedContent = processedContent.replace(/<br><\/ol><br><ol>/g, '<br>');
+        processedContent = processedContent.replace(/<\/ol><br><ol>/g, '');
+      }
+      
+      // 合并相邻的<br>标签，避免过多空行
+      processedContent = processedContent.replace(/<br>\s*<br>\s*<br>/g, '<br><br>');
+      
+      // 处理代码块
+      processedContent = processedContent.replace(/```([^`]+)```/g, '<pre><code>$1</code></pre>');
+      
+      // 根据withFormatting决定是否添加ai-response-content类
       const updatedHtmlContent = activeNote.htmlContent 
-        ? `${activeNote.htmlContent}<div class="ai-response-content">${content.replace(/\n/g, '<br>')}</div>`
-        : `<div class="ai-response-content">${content.replace(/\n/g, '<br>')}</div>`
+        ? `${activeNote.htmlContent}${withFormatting ? `<div class="ai-response-content">${processedContent}</div>` : processedContent}`
+        : withFormatting ? `<div class="ai-response-content">${processedContent}</div>` : processedContent;
 
+      // 同样根据withFormatting决定是否添加"AI 助手:"前缀
       const updatedContent = activeNote.content 
-        ? `${activeNote.content}\n\n${content}`
-        : content
+        ? `${activeNote.content}\n\n${withFormatting ? "AI 助手:\n" : ""}${content}`
+        : `${withFormatting ? "AI 助手:\n" : ""}${content}`;
 
       updateNote(activeNote.id, {
         content: updatedContent,
         htmlContent: updatedHtmlContent,
-      })
+      });
     }
   }
 
@@ -381,7 +481,7 @@ export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
       <div className="ai-assistant-main">
         <div className="ai-assistant-header">
           <div className="ai-assistant-title">
-            <span>AI 助手</span>
+            <span>AI assistant</span>
             <div className="service-status">QwQ-32B</div>
           </div>
           
@@ -454,10 +554,17 @@ export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
                       <div className="message-actions">
                         <button 
                           className="action-button" 
-                          onClick={() => insertToNote(message.content)}
-                          title={language === 'zh' ? "插入到笔记" : "Insert to note"}
+                          onClick={() => insertToNote(message.content, true)}
+                          title={language === 'zh' ? "以AI助手格式插入到笔记" : "Insert to note as AI assistant"}
                         >
-                          <Copy size={14} /> {buttonText.insertToNote}
+                          <Copy size={14} /> {language === 'zh' ? "带格式插入" : "Insert with format"}
+                        </button>
+                        <button 
+                          className="action-button" 
+                          onClick={() => insertToNote(message.content, false)}
+                          title={language === 'zh' ? "直接插入到笔记" : "Insert to note directly"}
+                        >
+                          <Copy size={14} /> {language === 'zh' ? "直接插入" : "Insert directly"}
                         </button>
                       </div>
                     )}
@@ -497,26 +604,29 @@ export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
         <form className="ai-assistant-input" onSubmit={handleSubmit}>
           {useNoteContent && (
             <div className="note-content-badge">
-              {buttonText.includeNoteContent} <button onClick={() => setUseNoteContent(false)}>×</button>
+              <span>{buttonText.includeNoteContent}</span> 
+              <button onClick={() => setUseNoteContent(false)} aria-label={language === 'zh' ? "移除笔记内容" : "Remove note content"}>×</button>
             </div>
           )}
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={getPlaceholderText()}
-            rows={1}
-            disabled={isLoading}
-          />
-          <button 
-            type="submit" 
-            className={`send-button ${isLoading ? 'loading' : ''}`}
-            disabled={isLoading || (!input.trim() && !useNoteContent)}
-            aria-label="发送消息"
-          >
-            <Send size={18} />
-          </button>
+          <div className="input-container">
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={getPlaceholderText()}
+              rows={1}
+              disabled={isLoading}
+            />
+            <button 
+              type="submit" 
+              className={`send-button ${isLoading ? 'loading' : ''}`}
+              disabled={isLoading || (!input.trim() && !useNoteContent)}
+              aria-label={language === 'zh' ? "发送消息" : "Send message"}
+            >
+              <Send size={18} />
+            </button>
+          </div>
         </form>
       </div>
     </div>
