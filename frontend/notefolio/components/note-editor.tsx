@@ -3,20 +3,52 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
-import { ImageIcon, FileText, AlignLeft, List, ListOrdered, Menu, Bold, Italic, Underline } from "lucide-react"
+import {
+  ImageIcon,
+  FileText,
+  AlignLeft,
+  List,
+  ListOrdered,
+  Menu,
+  Bold,
+  Italic,
+  Underline,
+  X,
+  Plus,
+  Folder,
+} from "lucide-react"
 import { useNotes } from "./note-context"
 
 export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => void }) {
-  const { notes, activeNoteId, updateNote } = useNotes()
+  const { notes, folders, activeNoteId, updateNote, addTag, removeTag, moveNote } = useNotes()
   const activeNote = notes.find((note) => note.id === activeNoteId) || notes[0]
+  const currentFolder = activeNote?.folderId ? folders.find((f) => f.id === activeNote.folderId) : null
 
   const [wordCount, setWordCount] = useState(0)
   const [charCount, setCharCount] = useState(0)
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [titleValue, setTitleValue] = useState(activeNote?.title || "")
+  const [newTag, setNewTag] = useState("")
+  const [showFolderDropdown, setShowFolderDropdown] = useState(false)
 
   const contentEditableRef = useRef<HTMLDivElement>(null)
   const titleInputRef = useRef<HTMLInputElement>(null)
+  const tagInputRef = useRef<HTMLInputElement>(null)
+  const folderDropdownRef = useRef<HTMLDivElement>(null)
+
+  // Close folder dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (folderDropdownRef.current && !folderDropdownRef.current.contains(event.target as Node)) {
+        setShowFolderDropdown(false)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
 
   // Sync the content state with the contentEditable element when active note changes
   useEffect(() => {
@@ -79,6 +111,32 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
     }
   }
 
+  const handleNewTagChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewTag(e.target.value)
+  }
+
+  const handleAddTag = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newTag.trim() && activeNote) {
+      addTag(activeNote.id, newTag.trim())
+      setNewTag("")
+      tagInputRef.current?.focus()
+    }
+  }
+
+  const handleRemoveTag = (tag: string) => {
+    if (activeNote) {
+      removeTag(activeNote.id, tag)
+    }
+  }
+
+  const handleMoveNote = (folderId: string | null) => {
+    if (activeNote) {
+      moveNote(activeNote.id, folderId)
+      setShowFolderDropdown(false)
+    }
+  }
+
   // Format text functions
   const formatText = (command: string, value = "") => {
     document.execCommand(command, false, value)
@@ -96,6 +154,25 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
         <span className="app-title">NoteFolio</span>
       </div>
 
+      <div className="editor-metadata">
+        <div className="folder-path" onClick={() => setShowFolderDropdown(!showFolderDropdown)}>
+          <Folder size={14} />
+          <span>{currentFolder ? currentFolder.name : "Root"}</span>
+          {showFolderDropdown && (
+            <div className="folder-dropdown" ref={folderDropdownRef}>
+              <div className="folder-dropdown-item" onClick={() => handleMoveNote(null)}>
+                Root
+              </div>
+              {folders.map((folder) => (
+                <div key={folder.id} className="folder-dropdown-item" onClick={() => handleMoveNote(folder.id)}>
+                  {folder.name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {isEditingTitle ? (
         <input
           ref={titleInputRef}
@@ -111,6 +188,32 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
           {activeNote?.title || "Untitled Note"}
         </h1>
       )}
+
+      <div className="tags-container">
+        <div className="tags-list">
+          {activeNote?.tags.map((tag) => (
+            <div key={tag} className="tag">
+              <span>{tag}</span>
+              <button className="remove-tag" onClick={() => handleRemoveTag(tag)}>
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+        <form onSubmit={handleAddTag} className="add-tag-form">
+          <input
+            ref={tagInputRef}
+            type="text"
+            className="tag-input"
+            placeholder="Add tag..."
+            value={newTag}
+            onChange={handleNewTagChange}
+          />
+          <button type="submit" className="add-tag-button" disabled={!newTag.trim()}>
+            <Plus size={14} />
+          </button>
+        </form>
+      </div>
 
       <div className="toolbar">
         <button className="toolbar-button" aria-label="Bold text" onClick={() => formatText("bold")}>
