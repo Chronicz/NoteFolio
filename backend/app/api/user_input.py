@@ -7,27 +7,35 @@ from db.mongo_db import db
 router=APIRouter()
 database=db["Notefolio"]    
 
-@router.post("/notes",response_model=None)
-async def create_note(note:User_Inputs):
-    new_note=User_Input(
-        title=note.title,
-        content=note.content,
-        tags=note.tags,
-        postedDate=note.postedDate
-    )
-
-    result=database.insert_one(new_note.to_dict())
+@router.post("/notes/{user_id}",response_model=None)
+async def create_note(user_id:str,note:User_Inputs):
+    user_object_id=ObjectId(user_id)
+    if(not user_object_id):
+            raise HTTPException(status_code=404, detail="User not found")
+    
+    new_note= {
+            "title": note.title,
+            "content": note.title,
+            "tags": note.tags,
+            "user":user_object_id
+        }
+            
+    result=database.insert_one(new_note)
+    
+    if not result:
+        raise HTTPException(status_code=500,detail="Failed to create note")
 
     return {
         "message":f"Note successfully created{result}",
-        "note_title":new_note["title"],
-        "note_content":new_note["content"],
-        "note_tags":new_note["tags"],
-        "note_postedDate":new_note["postedDate"]
+        "note_id":str(result.inserted_id)
     }
 
-@router.get("/notes")
-async def query_all_notes():
+@router.get("/get-notes/{user_id}")
+async def query_all_notes(user_id:str):
+    user_object_id=ObjectId(user_id)
+    if(not user_object_id):
+            raise HTTPException(status_code=404, detail="User not found")
+    
     find_all_notes=list(database.find({}))
 
     if not find_all_notes:
@@ -37,16 +45,21 @@ async def query_all_notes():
 
 def serialize_note(note):
     return {
-        "note_title":note["title"],
-        "note_content":note["content"],
-        "note_tags":note["tags"],
-        "note_postedDate":note["postedDate"]
+        "note_title": note.get("title", ""),
+        "note_content": note.get("content", ""),
+        "note_tags": note.get("tags", []),
     }
 
-@router.delete("/notes/{id}")
-async def delete_note(id:str):
+
+@router.delete("/delete-note/{user_id}/{id}")
+async def delete_note(user_id:str,id:str):
     user_id=ObjectId(id)
-    find_note_to_delete=database.find_one({"_id":user_id})
+    if not user_id:
+        raise HTTPException(status_code=404,detail="Couldn't find user to delete")
+    
+    if not id:
+        raise HTTPException(status_code=404,detail="Couldn't find note to delete")
+    find_note_to_delete=database.find_one({"_id":id})
 
     if not find_note_to_delete:
         raise HTTPException(status_code=404,detail="Couldn't find note to delete")
@@ -60,26 +73,28 @@ async def delete_note(id:str):
         "note_title":find_note_to_delete["title"],
         "note_content":find_note_to_delete["content"],
         "note_tags":find_note_to_delete["tags"],
-        "note_postedDate":find_note_to_delete["postedDate"]
     }
 
-@router.patch("/notes/{id}")
-async def update_note(id:str,note_update:User_Input_Update):
-    user_id=ObjectId(id)
-    find_note_to_update=database.find_one({"_id":user_id})
+@router.patch("/update-notes/{id}")
+async def update_note(id: str, note_update: User_Input_Update):
+    note_id = ObjectId(id)
 
+    find_note_to_update = database.find_one({"_id": note_id})
     if not find_note_to_update:
-        raise HTTPException(status_code=400,detail="Id field not provided")
-    
-    result=database.update_one({"_id":user_id},{"$set":note_update})
+        raise HTTPException(status_code=400, detail="Id field not provided")
+
+    result = database.update_one(
+        {"_id": note_id},
+        {"$set": note_update.dict(exclude_unset=True)}
+    )
 
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Couldn't update the note")
-    
-    return{
-        "message":"Successfully updated note",
-        "note_title":result["title"],
-        "note_content":result["content"],
-        "note_tags":result["tags"],
-        "note_postedDate":result["postedDate"]
+
+    updated_note = database.find_one({"_id": note_id})
+    return {
+        "message": "Successfully updated note",
+        "note_title": updated_note["title"],
+        "note_content": updated_note["content"],
+        "note_tags": updated_note["tags"],
     }
