@@ -62,9 +62,10 @@ export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([])
   const [activeChatId, setActiveChatId] = useState<string | null>(null)
   const [useNoteContent, setUseNoteContent] = useState(false)
-  const [language, setLanguage] = useState<'zh' | 'en'>('zh')
+  const [language, setLanguage] = useState<'zh' | 'en'>('en')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [isComposing, setIsComposing] = useState(false)
 
   // 从本地存储加载聊天历史
   useEffect(() => {
@@ -220,10 +221,18 @@ export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
       e.preventDefault()
       handleSubmit()
     }
+  }
+  
+  const handleCompositionStart = () => {
+    setIsComposing(true)
+  }
+  
+  const handleCompositionEnd = () => {
+    setIsComposing(false)
   }
 
   const startNewChat = () => {
@@ -614,15 +623,18 @@ export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
+              onCompositionStart={handleCompositionStart}
+              onCompositionEnd={handleCompositionEnd}
               placeholder={getPlaceholderText()}
               rows={1}
+              className="ai-input-textarea"
               disabled={isLoading}
             />
             <button 
               type="submit" 
-              className={`send-button ${isLoading ? 'loading' : ''}`}
+              className="send-button"
               disabled={isLoading || (!input.trim() && !useNoteContent)}
-              aria-label={language === 'zh' ? "发送消息" : "Send message"}
+              aria-label={language === 'zh' ? "发送" : "Send"}
             >
               <Send size={18} />
             </button>
