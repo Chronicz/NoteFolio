@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/components/auth-context"
+import { useAuth } from "../../components/auth-context"
 
 export default function LoginPage() {
     const [email, setEmail] = useState("")
