@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
 
-import { useRouter } from "next/navigation" 
+import { useRouter } from "next/navigation"
 
 import {
   ImageIcon,
@@ -19,17 +19,25 @@ import {
   X,
   Plus,
   Folder,
+  LogIn,
+  User,
+  LogOut,
   BotIcon,
-  Crown
+  Crown,
+  Settings,
 } from "lucide-react"
 
 import { useNotes } from "./note-context"
 import AiAssistant from "./ai-assistant"
+import { useAuth } from "./auth-context"
+import { useTheme } from "./theme-context"
 
 export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => void }) {
   const { notes, folders, activeNoteId, updateNote, addTag, removeTag, moveNote } = useNotes()
   const activeNote = notes.find((note) => note.id === activeNoteId) || notes[0]
   const currentFolder = activeNote?.folderId ? folders.find((f) => f.id === activeNote.folderId) : null
+  const { user, logout } = useAuth()
+  const { theme } = useTheme()
 
   const [wordCount, setWordCount] = useState(0)
   const [charCount, setCharCount] = useState(0)
@@ -38,19 +46,24 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
   const [isAiAssistantOpen, setIsAiAssistantOpen] = useState(false)
   const [newTag, setNewTag] = useState("")
   const [showFolderDropdown, setShowFolderDropdown] = useState(false)
-  const router=useRouter()
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const router = useRouter()
 
 
   const contentEditableRef = useRef<HTMLDivElement>(null)
   const titleInputRef = useRef<HTMLInputElement>(null)
   const tagInputRef = useRef<HTMLInputElement>(null)
   const folderDropdownRef = useRef<HTMLDivElement>(null)
+  const userMenuRef = useRef<HTMLDivElement>(null)
 
   // Close folder dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (folderDropdownRef.current && !folderDropdownRef.current.contains(event.target as Node)) {
         setShowFolderDropdown(false)
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false)
       }
     }
 
@@ -147,6 +160,18 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
     }
   }
 
+  const handleUserAction = () => {
+    if (user) {
+      setShowUserMenu(!showUserMenu)
+    } else {
+      router.push("/login")
+    }
+  }
+
+  const goToSettings = () => {
+    router.push("/settings")
+  }
+
   // Format text functions
   const formatText = (command: string, value = "") => {
     document.execCommand(command, false, value)
@@ -162,16 +187,42 @@ export default function NoteEditor({ toggleSidebar }: { toggleSidebar: () => voi
   return (
     <div className="editor-container">
       <div className="app-header">
-        <button onClick={toggleSidebar} className="menu-button" aria-label="Toggle sidebar">
-          <Menu size={18} />
-        </button>
-        <span className="app-title">NoteFolio</span>
+        <div className="header-left">
+          <button onClick={toggleSidebar} className="menu-button" aria-label="Toggle sidebar">
+            <Menu size={18} />
+          </button>
+          <span className="app-title">NoteFolio</span>
+        </div>
 
-        <button className="ml-auto flex items-center gap-2 bg-yellow-200 text-orange-700 border-none rounded-md px-3 py-2 font-medium text-sm cursor-pointer transition-all duration-200 ease-in-out hover:bg-yellow-200" aria-label="Upgrade to premium" onClick={()=> router.push("/payment-folder")}>
-           <Crown size={18} />
-           <span className="premium-text">Upgrade</span>
-         </button>
+        <div className="header-right">
+          <button className="user-button" onClick={handleUserAction} aria-label={user ? "User menu" : "Sign in"}>
+            {user ? <User size={20} /> : <LogIn size={20} />}
+          </button>
+
+          {showUserMenu && user && (
+            <div className="user-menu" ref={userMenuRef}>
+              <div className="user-info">
+                <span className="user-name">{user.name}</span>
+                <span className="user-email">{user.email}</span>
+              </div>
+              <button className="user-menu-item" onClick={goToSettings}>
+                <Settings size={16} />
+                <span>Settings</span>
+              </button>
+              <button className="user-menu-item logout" onClick={logout}>
+                <LogOut size={16} />
+                <span>Sign out</span>
+              </button>
+            </div>
+          )}
+        </div>
+        <button className="ml-auto flex items-center gap-2 bg-yellow-200 text-orange-700 border-none rounded-md px-3 py-2 font-medium text-sm cursor-pointer transition-all duration-200 ease-in-out hover:bg-yellow-200" aria-label="Upgrade to premium" onClick={() => router.push("/payment-folder")}>
+          <Crown size={18} />
+          <span className="premium-text">Upgrade</span>
+        </button>
       </div>
+
+
 
       <div className="editor-metadata">
         <div className="folder-path" onClick={() => setShowFolderDropdown(!showFolderDropdown)}>

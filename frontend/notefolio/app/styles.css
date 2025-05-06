@@ -1615,3 +1615,436 @@ body {
     color: #718096;
     font-size: 14px;
 }
+
+/* Login page styles */
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--sidebar-bg);
+}
+
+.login-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 32px;
+    background-color: var(--background-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.login-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-color);
+}
+
+.login-header p {
+    color: var(--muted-color);
+    font-size: 14px;
+}
+
+.login-error {
+    background-color: var(--error-bg);
+    color: var(--error-color);
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.form-group input {
+    padding: 10px 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    font-size: 16px;
+    outline: none;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+.form-group input:focus {
+    border-color: var(--button-bg);
+    box-shadow: 0 0 0 1px rgba(66, 153, 225, 0.5);
+}
+
+.login-button {
+    background-color: var(--button-bg);
+    color: var(--button-color);
+    border: none;
+    border-radius: 4px;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.login-button:hover {
+    background-color: var(--button-hover-bg);
+}
+
+.login-button:disabled {
+    background-color: var(--muted-color);
+    cursor: not-allowed;
+}
+
+.login-footer {
+    margin-top: 24px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--muted-color);
+}
+
+.login-footer a {
+    color: var(--button-bg);
+    text-decoration: none;
+}
+
+.login-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Loading screen */
+.loading-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-size: 18px;
+    color: var(--text-color);
+}
+
+/* Settings page styles */
+.settings-page {
+    min-height: 100vh;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.settings-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-color);
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-right: 16px;
+}
+
+.back-button:hover {
+    background-color: var(--hover-bg);
+}
+
+.settings-header h1 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.settings-container {
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.settings-sidebar {
+    width: 240px;
+    padding-right: 24px;
+    border-right: 1px solid var(--border-color);
+}
+
+.settings-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 4px;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    color: var(--text-color);
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.settings-nav-item:hover {
+    background-color: var(--hover-bg);
+}
+
+.settings-nav-item.active {
+    background-color: var(--active-bg);
+    font-weight: 500;
+}
+
+.settings-nav-item.logout {
+    color: var(--error-color);
+    margin-top: 16px;
+}
+
+.settings-nav-item.logout:hover {
+    background-color: var(--error-bg);
+}
+
+.settings-content {
+    flex: 1;
+    padding-left: 32px;
+}
+
+.settings-section {
+    max-width: 600px;
+}
+
+.settings-section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    color: var(--text-color);
+}
+
+.settings-profile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 16px;
+    border-radius: 8px;
+    background-color: var(--hover-bg);
+}
+
+.profile-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-color: var(--button-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--button-color);
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.profile-info h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.profile-info p {
+    color: var(--muted-color);
+    font-size: 14px;
+}
+
+.settings-group {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.settings-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-item:last-child {
+    border-bottom: none;
+}
+
+.settings-item h4 {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.settings-item p {
+    color: var(--muted-color);
+    font-size: 12px;
+}
+
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--tag-bg);
+    color: var(--tag-color);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.theme-toggle:hover {
+    background-color: var(--hover-bg);
+}
+
+.settings-select {
+    padding: 8px 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    font-size: 14px;
+    min-width: 120px;
+}
+
+.settings-button {
+    padding: 6px 12px;
+    background-color: var(--button-bg);
+    color: var(--button-color);
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.settings-button:hover {
+    background-color: var(--button-hover-bg);
+}
+
+/* Toggle switch */
+.toggle {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--toggle-bg);
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--toggle-knob);
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.toggle-slider {
+    background-color: var(--toggle-active-bg);
+}
+
+input:checked+.toggle-slider:before {
+    transform: translateX(20px);
+}
+
+/* Storage usage */
+.storage-usage {
+    margin-bottom: 24px;
+}
+
+.storage-bar {
+    height: 8px;
+    background-color: var(--tag-bg);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.storage-used {
+    height: 100%;
+    background-color: var(--button-bg);
+    border-radius: 4px;
+}
+
+.storage-usage p {
+    font-size: 14px;
+    color: var(--muted-color);
+}
+
+/* Keyboard shortcuts */
+.shortcuts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.shortcut-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: var(--hover-bg);
+    border-radius: 4px;
+}
+
+.shortcut-keys {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+kbd {
+    display: inline-block;
+    padding: 4px 6px;
+    font-size: 12px;
+    line-height: 1;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    box-shadow: 0 1px 1px var(--shadow-color);
+}
