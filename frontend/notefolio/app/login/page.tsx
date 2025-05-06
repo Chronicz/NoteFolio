@@ -1,10 +1,10 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "../../components/auth-context"
+import axios from "axios";  
 
 export default function LoginPage() {
     const [email, setEmail] = useState("")
@@ -27,12 +27,21 @@ export default function LoginPage() {
             return
         }
 
-        const success = await login(email, password)
-        if (success) {
-            router.push("/")
-        } else {
-            setError("Invalid email or password")
-        }
+        try {
+            const response = await axios.post('/login-user', {
+              email,
+              password,
+            });
+            const data = response.data;
+            localStorage.setItem('access_token', data.access_token);
+            localStorage.setItem('refresh_token', data.refresh_token);
+            // handle the response data, e.g. store the access token
+            console.log(data)
+            router.push("/");
+          } catch (error) {
+            console.error(error);
+            setError("Invalid email or password");
+          }
     }
 
     return (
