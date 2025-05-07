@@ -65,6 +65,34 @@ export function NoteProvider({ children }: { children: ReactNode }) {
       tags: [],
       folderId: null,
     },
+    {
+      id: "3",
+      title: "Git Basics",
+      content: "Git is a distributed version control system used for tracking changes in source code. It's commonly used in collaborative software development to manage code history, branching, and merging. Important commands include `git init`, `git status`, `git add`, `git commit`, `git push`, and `git pull`.",
+      timestamp: "04:10 PM",
+      htmlContent: "Git is a distributed version control system used for tracking changes in source code. It's commonly used in collaborative software development to manage code history, branching, and merging. Important commands include <code>git init</code>, <code>git status</code>, <code>git add</code>, <code>git commit</code>, <code>git push</code>, and <code>git pull</code>.",
+      tags: ["work", "coding", "school"],
+      folderId: null
+    },
+    {
+      id: "4",
+      title: "JavaScript Event Loop",
+      content: "The JavaScript event loop is a concurrency model that handles asynchronous operations using a single-threaded mechanism. It continuously checks the call stack and the message queue to execute code in the correct order. Tasks like setTimeout, fetch, and user events are handled through the event loop, making JavaScript non-blocking.",
+      timestamp: "04:22 PM",
+      htmlContent: "The JavaScript event loop is a concurrency model that handles asynchronous operations using a single-threaded mechanism. It continuously checks the call stack and the message queue to execute code in the correct order. Tasks like <code>setTimeout</code>, <code>fetch</code>, and user events are handled through the event loop, making JavaScript non-blocking.",
+      tags: ["work"],
+      folderId: null
+    },
+    {
+      id: "5",
+      title: "CS 146 - Sorting Algorithms",
+      content: "Sorting algorithms like Bubble Sort, QuickSort, and Merge Sort differ in efficiency and use cases. Bubble Sort is simple but inefficient (O(n^2)), while QuickSort is faster on average (O(n log n)) using divide-and-conquer. Merge Sort guarantees O(n log n) time complexity and is stable, making it ideal for sorting linked lists or large datasets.",
+      timestamp: "04:35 PM",
+      htmlContent: "Sorting algorithms like Bubble Sort, QuickSort, and Merge Sort differ in efficiency and use cases. Bubble Sort is simple but inefficient (O(n<sup>2</sup>)), while QuickSort is faster on average (O(n log n)) using divide-and-conquer. Merge Sort guarantees O(n log n) time complexity and is stable, making it ideal for sorting linked lists or large datasets.",
+      tags: ["learning", "school", "interview"],
+      folderId: null
+    }
+
   ])
 
   const [folders, setFolders] = useState<Folder[]>([
