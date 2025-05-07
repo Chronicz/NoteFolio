@@ -212,8 +212,8 @@ export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
         )
       }
     } catch (err) {
-      console.error('API请求错误:', err)
-      setError(err instanceof Error ? err.message : '请求失败，请稍后重试')
+      console.error('API request error:', err)
+      setError(err instanceof Error ? err.message : 'Request failed, please try again later')
     } finally {
       setIsLoading(false)
     }
@@ -370,8 +370,8 @@ export default function AiAssistant({ isOpen, onClose }: AIAssistantProps) {
 
       // 同样根据withFormatting决定是否添加"AI 助手:"前缀
       const updatedContent = activeNote.content 
-        ? `${activeNote.content}\n\n${withFormatting ? "AI 助手:\n" : ""}${content}`
-        : `${withFormatting ? "AI 助手:\n" : ""}${content}`;
+        ? `${activeNote.content}\n\n${withFormatting ? "AI Assistant:\n" : ""}${content}`
+        : `${withFormatting ? "AI Assistant:\n" : ""}${content}`;
 
       updateNote(activeNote.id, {
         content: updatedContent,
