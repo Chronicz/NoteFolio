@@ -26,7 +26,7 @@ Backend: Node.js, Express.js, Python, FastAPI
 
 Database: MongoDB
 
-AI Integration: OpenAI API
+AI Integration: Gemini API
 
 ## Clone the repository
 git clone https://github.com/your-username/NoteFolio.git
